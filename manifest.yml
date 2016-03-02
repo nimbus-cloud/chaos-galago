@@ -1,0 +1,18 @@
+---
+applications:
+- name: chaos-galago-broker
+  memory: 20M
+  disk_quota: 50M
+  instances: 2
+  path: broker
+  services:
+  - chaos-galago-db
+- name: chaos-galago-processor
+  memory: 20M
+  disk_quota: 50M
+  instances: 2
+  path: processor
+  no-route: true
+  services:
+  - chaos-galago-db
+  - cf-service

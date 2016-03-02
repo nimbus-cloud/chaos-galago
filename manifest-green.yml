@@ -1,0 +1,9 @@
+---
+applications:
+- name: chaos-galago-broker-green
+  memory: 20M
+  disk_quota: 50M
+  instances: 2
+  path: broker
+  services:
+  - chaos-galago-db

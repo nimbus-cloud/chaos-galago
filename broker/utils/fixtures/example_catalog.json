@@ -1,0 +1,13 @@
+{
+  "services": [{
+    "id": "chaos-galago",
+    "name": "chaos-galago-test",
+    "description": "Provides the ability to cause chaos on bound application instances",
+    "bindable": true,
+    "plans": [{
+      "id": "default",
+      "name": "default",
+      "description": "The default and only plan"
+    }]
+  }]
+}

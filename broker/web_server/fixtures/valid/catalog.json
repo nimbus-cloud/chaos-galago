@@ -1,0 +1,27 @@
+{
+  "services": [{
+    "id": "chaos-galago",
+    "name": "chaos-galago",
+    "description": "Provides the ability to cause chaos on bound application instances",
+    "bindable": true,
+    "plans": [{
+      "id": "default",
+      "name": "default",
+      "description": "The default and only plan",
+      "metadata": {
+        "cost": 0,
+        "bullets": [
+          "Default Probability: 0.2",
+          "Default Frequency: 5"
+        ]
+      },
+      "free": true
+    }],
+    "metadata": {
+      "imageUrl":"",
+      "providerDisplayName":"",
+      "displayName":"chaos-galago",
+      "documentationUrl":""
+    }
+  }]
+}
