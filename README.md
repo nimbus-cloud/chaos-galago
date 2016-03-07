@@ -96,3 +96,7 @@ CF_USERNAME='a_cf_user' \
 CF_PASSWORD='a_cf_user_password' \
 deploy.sh
 ```
+
+### Monitor/Test
+
+To monitor and test that chaos-galago is functioning as expected you can use the `chaos-galago-smoke-tests` project from `https://github.com/FidelityInternational/chaos-galago-smoke-tests`.
