@@ -1,5 +1,7 @@
 # chaos-galago
 
+[![Build Status](https://travis-ci.org/FidelityInternational/chaos-galago.svg?branch=master)](https://travis-ci.org/FidelityInternational/chaos-galago)
+
 ### Overview
 
 `chaos-galago` is a project designed to assist in proving applications running on Cloud Foundry are cloud resilient. It is deployed as a service broker and therfore available on the marketplace as a bindable service.
