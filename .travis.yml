@@ -3,12 +3,9 @@ language: go
 
 go:
   - tip
+  - 1.5
 
-install:
-  - go get github.com/onsi/ginkgo
-  - go get github.com/onsi/gomega
+go_import_path: chaos-galago
+
 script:
-  - mv $HOME/gopath/src/github.com/FidelityInternational/chaos-galago $HOME/gopath/src/chaos-galago
-  - cd $HOME/gopath/src/chaos-galago
-  - go get -t ./...
   - go test -v ./...
