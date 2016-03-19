@@ -7,6 +7,7 @@ go:
 install:
   - go get github.com/onsi/ginkgo
   - go get github.com/onsi/gomega
-
 script:
+  - mv $HOME/gopath/src/github.com/FidelityInternational/chaos-galago $HOME/gopath/src/chaos-galago
+  - cd $HOME/gopath/src/chaos-galago
   - go test -v ./...
