@@ -63,7 +63,7 @@ What the script does:
 * Enables service access to the server
 * Zero downtime upgrades of the broker if it is already deployed
 
-What the script does **NOT do:
+What the script does **NOT** do:
 * Create a database - chaos galago requires a SQL database, the deploy script will configure the application to connect to a previously existing database.
 
 Required Variables:
