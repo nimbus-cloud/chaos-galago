@@ -158,7 +158,7 @@ var _ = Describe("#UpdateServiceInstance", func() {
 
 var _ = Describe("#DeleteServiceInstance", func() {
 	It("Deletes service instance from the database", func() {
-		var instance shared_model.ServiceInstance
+		var instance sharedModel.ServiceInstance
 		db, mock, err := sqlmock.New()
 		if err != nil {
 			fmt.Printf("\nan error '%s' was not expected when opening a stub database connection\n", err)
@@ -218,7 +218,7 @@ var _ = Describe("#DeleteServiceInstanceBindings", func() {
 
 var _ = Describe("#AddServiceInstance", func() {
 	It("Adds service instance details to the database", func() {
-		var instance shared_model.ServiceInstance
+		var instance sharedModel.ServiceInstance
 		db, mock, err := sqlmock.New()
 		if err != nil {
 			fmt.Printf("\nan error '%s' was not expected when opening a stub database connection\n", err)
@@ -246,7 +246,7 @@ var _ = Describe("#AddServiceInstance", func() {
 
 var _ = Describe("#AddServiceBinding", func() {
 	It("Adds service binding details to the database", func() {
-		var binding shared_model.ServiceBinding
+		var binding sharedModel.ServiceBinding
 		db, mock, err := sqlmock.New()
 		if err != nil {
 			fmt.Printf("\nan error '%s' was not expected when opening a stub database connection\n", err)
@@ -330,7 +330,7 @@ var _ = Describe("#SetupBindingDB", func() {
 
 var _ = Describe("#GetServiceInstance", func() {
 	var (
-		serviceInstance shared_model.ServiceInstance
+		serviceInstance sharedModel.ServiceInstance
 	)
 
 	Context("When the service instance exists", func() {
@@ -349,7 +349,7 @@ var _ = Describe("#GetServiceInstance", func() {
 
 			serviceInstance, err = utils.GetServiceInstance(db, "1")
 			Expect(err).To(BeNil())
-			Expect(serviceInstance).To(Equal(shared_model.ServiceInstance{ID: "1", DashboardURL: "example.com/1", PlanID: "1", Probability: 0.2, Frequency: 5}))
+			Expect(serviceInstance).To(Equal(sharedModel.ServiceInstance{ID: "1", DashboardURL: "example.com/1", PlanID: "1", Probability: 0.2, Frequency: 5}))
 		})
 	})
 
@@ -367,7 +367,7 @@ var _ = Describe("#GetServiceInstance", func() {
 
 			serviceInstance, err = utils.GetServiceInstance(db, "1")
 			Expect(err).To(BeNil())
-			Expect(serviceInstance).To(Equal(shared_model.ServiceInstance{}))
+			Expect(serviceInstance).To(Equal(sharedModel.ServiceInstance{}))
 		})
 	})
 })

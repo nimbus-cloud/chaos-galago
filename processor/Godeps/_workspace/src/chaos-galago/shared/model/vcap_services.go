@@ -1,4 +1,4 @@
-package shared_model
+package sharedModel
 
 type VCAPServices struct {
 	UserProvided []UserProvidedServices `json:"user-provided"`

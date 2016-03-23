@@ -1,5 +1,6 @@
 package model
 
+// Service struct
 type Service struct {
 	Name        string        `json:"name"`
 	ID          string        `json:"id"`

@@ -1,4 +1,4 @@
-package web_server_test
+package webServer_test
 
 import (
 	. "chaos-galago/broker/Godeps/_workspace/src/github.com/onsi/ginkgo"

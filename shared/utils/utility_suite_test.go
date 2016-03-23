@@ -1,4 +1,4 @@
-package shared_utils_test
+package sharedUtils_test
 
 import (
 	. "github.com/onsi/ginkgo"

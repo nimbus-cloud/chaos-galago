@@ -1,5 +1,6 @@
 package model
 
+// Service struct
 type Service struct {
 	Probability   float64 `json:"probability"`
 	Frequency     int     `json:"frequency"`

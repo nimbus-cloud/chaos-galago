@@ -9,6 +9,7 @@ import (
 	webs "chaos-galago/broker/web_server"
 )
 
+// Options struct
 type Options struct {
 	ConfigPath string
 }

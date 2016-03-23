@@ -1,4 +1,4 @@
-package web_server
+package webServer
 
 import (
 	"fmt"
@@ -8,6 +8,7 @@ import (
 	"chaos-galago/broker/Godeps/_workspace/src/github.com/gorilla/mux"
 
 	"chaos-galago/broker/Godeps/_workspace/src/chaos-galago/shared/utils"
+	// mysql driver
 	_ "chaos-galago/broker/Godeps/_workspace/src/github.com/go-sql-driver/mysql"
 	"chaos-galago/broker/config"
 	"chaos-galago/broker/utils"
@@ -21,12 +22,14 @@ var (
 	dbConnectionString string
 )
 
+// Server struct
 type Server struct {
 	controller *Controller
 }
 
+// CreateServer - creates a server
 func CreateServer() (*Server, error) {
-	dbConnectionString, err = shared_utils.GetDBConnectionDetails()
+	dbConnectionString, err = sharedUtils.GetDBConnectionDetails()
 	if err != nil {
 		fmt.Println(err)
 		return nil, err
@@ -56,6 +59,7 @@ func CreateServer() (*Server, error) {
 	}, nil
 }
 
+// Start - starts the web server
 func (s *Server) Start() {
 	router := mux.NewRouter()
 
@@ -67,12 +71,12 @@ func (s *Server) Start() {
 	router.HandleFunc("/v2/service_instances/{service_instance_guid}/service_bindings/{service_binding_guid}", s.controller.UnBind).Methods("DELETE")
 	router.HandleFunc("/dashboard/{service_instance_guid}", s.controller.GetDashboard).Methods("GET")
 	router.HandleFunc("/dashboard/{service_instance_guid}", s.controller.UpdateServiceInstance).Methods("POST")
-	router.PathPrefix("/").Handler(http.FileServer(http.Dir("./web_server/resources/")))
+	router.PathPrefix("/").Handler(http.FileServer(http.Dir("./webServer/resources/")))
 
 	http.Handle("/", router)
 
 	err := http.ListenAndServe(":"+os.Getenv("PORT"), nil)
 	if err != nil {
-		fmt.Printf("ListenAndServe:", err)
+		fmt.Println("ListenAndServe:", err)
 	}
 }

@@ -1,5 +1,6 @@
-package shared_model
+package sharedModel
 
+// ServiceBinding struct
 type ServiceBinding struct {
 	ID                string `json:"id"`
 	AppID             string `json:"app_guid"`

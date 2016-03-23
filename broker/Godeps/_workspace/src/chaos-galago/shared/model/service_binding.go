@@ -1,4 +1,4 @@
-package shared_model
+package sharedModel
 
 type ServiceBinding struct {
 	ID                string `json:"id"`

@@ -1,4 +1,4 @@
-package shared_utils_test
+package sharedUtils_test
 
 import (
 	"chaos-galago/shared/model"
@@ -12,7 +12,7 @@ import (
 
 var _ = Describe("#ReadServiceInstances", func() {
 	var (
-		serviceInstancesMap map[string]shared_model.ServiceInstance
+		serviceInstancesMap map[string]sharedModel.ServiceInstance
 	)
 
 	Context("When the database schema is correct", func() {
@@ -30,11 +30,11 @@ var _ = Describe("#ReadServiceInstances", func() {
 
 			mock.ExpectQuery("^SELECT (.+) FROM service_instances$").WillReturnRows(rows)
 
-			serviceInstancesMap, err = shared_utils.ReadServiceInstances(db)
+			serviceInstancesMap, err = sharedUtils.ReadServiceInstances(db)
 			Expect(err).To(BeNil())
 			Expect(serviceInstancesMap).To(HaveLen(2))
-			Expect(serviceInstancesMap["1"]).To(Equal(shared_model.ServiceInstance{ID: "1", DashboardURL: "example.com/1", PlanID: "1", Probability: 0.2, Frequency: 5}))
-			Expect(serviceInstancesMap["2"]).To(Equal(shared_model.ServiceInstance{ID: "2", DashboardURL: "example.com/2", PlanID: "2", Probability: 0.4, Frequency: 10}))
+			Expect(serviceInstancesMap["1"]).To(Equal(sharedModel.ServiceInstance{ID: "1", DashboardURL: "example.com/1", PlanID: "1", Probability: 0.2, Frequency: 5}))
+			Expect(serviceInstancesMap["2"]).To(Equal(sharedModel.ServiceInstance{ID: "2", DashboardURL: "example.com/2", PlanID: "2", Probability: 0.4, Frequency: 10}))
 		})
 	})
 
@@ -54,7 +54,7 @@ var _ = Describe("#ReadServiceInstances", func() {
 
 				mock.ExpectQuery("^SELECT (.+) FROM service_instances$").WillReturnRows(rows)
 
-				serviceInstancesMap, err = shared_utils.ReadServiceInstances(db)
+				serviceInstancesMap, err = sharedUtils.ReadServiceInstances(db)
 				Expect(err).ToNot(BeNil())
 				Expect(err.Error()).To(Equal("sql: expected 6 destination arguments in Scan, not 5"))
 			})
@@ -75,7 +75,7 @@ var _ = Describe("#ReadServiceInstances", func() {
 
 				mock.ExpectQuery("^SELECT (.+) FROM service_instances$").WillReturnRows(rows)
 
-				serviceInstancesMap, err = shared_utils.ReadServiceInstances(db)
+				serviceInstancesMap, err = sharedUtils.ReadServiceInstances(db)
 				Expect(err).ToNot(BeNil())
 				Expect(err.Error()).To(Equal("sql: expected 3 destination arguments in Scan, not 5"))
 			})
@@ -85,7 +85,7 @@ var _ = Describe("#ReadServiceInstances", func() {
 
 var _ = Describe("#ReadServiceBindings", func() {
 	var (
-		serviceBindingsMap map[string]shared_model.ServiceBinding
+		serviceBindingsMap map[string]sharedModel.ServiceBinding
 	)
 
 	Context("When the database schema is correct", func() {
@@ -103,11 +103,11 @@ var _ = Describe("#ReadServiceBindings", func() {
 
 			mock.ExpectQuery("^SELECT (.+) FROM service_bindings$").WillReturnRows(rows)
 
-			serviceBindingsMap, err = shared_utils.ReadServiceBindings(db)
+			serviceBindingsMap, err = sharedUtils.ReadServiceBindings(db)
 			Expect(err).To(BeNil())
 			Expect(serviceBindingsMap).To(HaveLen(2))
-			Expect(serviceBindingsMap["1"]).To(Equal(shared_model.ServiceBinding{ID: "1", AppID: "1", ServicePlanID: "1", ServiceInstanceID: "1", LastProcessed: "2014-11-12T10:31:20Z"}))
-			Expect(serviceBindingsMap["2"]).To(Equal(shared_model.ServiceBinding{ID: "2", AppID: "2", ServicePlanID: "2", ServiceInstanceID: "2", LastProcessed: "2014-11-12T10:34:20Z"}))
+			Expect(serviceBindingsMap["1"]).To(Equal(sharedModel.ServiceBinding{ID: "1", AppID: "1", ServicePlanID: "1", ServiceInstanceID: "1", LastProcessed: "2014-11-12T10:31:20Z"}))
+			Expect(serviceBindingsMap["2"]).To(Equal(sharedModel.ServiceBinding{ID: "2", AppID: "2", ServicePlanID: "2", ServiceInstanceID: "2", LastProcessed: "2014-11-12T10:34:20Z"}))
 		})
 	})
 })
@@ -141,7 +141,7 @@ var _ = Describe("GetDBConnectionDetails", func() {
 	})
 
 	It("Returns the database connection string", func() {
-		dbConnString, err := shared_utils.GetDBConnectionDetails()
+		dbConnString, err := sharedUtils.GetDBConnectionDetails()
 		Expect(err).To(BeNil())
 		Expect(dbConnString).To(Equal("test_user:test_password@tcp(test_host:test_port)/test_database"))
 	})

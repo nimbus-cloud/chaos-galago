@@ -1,4 +1,4 @@
-package shared_model
+package sharedModel
 
 type ServiceInstance struct {
 	ID           string  `json:"id"`

@@ -18,7 +18,7 @@ var (
 )
 
 func init() {
-	dbConnectionString, err = shared_utils.GetDBConnectionDetails()
+	dbConnectionString, err = sharedUtils.GetDBConnectionDetails()
 	if err != nil {
 		fmt.Println(err.Error())
 		os.Exit(1)

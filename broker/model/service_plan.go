@@ -1,5 +1,6 @@
 package model
 
+// ServicePlan struct
 type ServicePlan struct {
 	Name        string      `json:"name"`
 	ID          string      `json:"id"`

@@ -2,6 +2,7 @@ package utils
 
 import (
 	"chaos-galago/broker/Godeps/_workspace/src/chaos-galago/shared/model"
+	// sql driver
 	_ "chaos-galago/broker/Godeps/_workspace/src/github.com/go-sql-driver/mysql"
 	"chaos-galago/broker/Godeps/_workspace/src/github.com/gorilla/mux"
 	"database/sql"
@@ -13,10 +14,12 @@ import (
 	"strings"
 )
 
+// RemoveGreenFromURI - removes "-green" from provided URI for zero downtime deployments
 func RemoveGreenFromURI(URI string) string {
 	return strings.Replace(URI, "-green", "", 1)
 }
 
+// GetVCAPApplicationVars - populates an object based on the "VCAP_APPLICATION" environment variables
 func GetVCAPApplicationVars(object interface{}) error {
 	vcapApplication := os.Getenv("VCAP_APPLICATION")
 	err := json.Unmarshal([]byte(vcapApplication), object)
@@ -26,6 +29,7 @@ func GetVCAPApplicationVars(object interface{}) error {
 	return nil
 }
 
+// ReadAndUnmarshal - loads file into object
 func ReadAndUnmarshal(object interface{}, dir string, fileName string) error {
 	path := dir + string(os.PathSeparator) + fileName
 
@@ -42,6 +46,7 @@ func ReadAndUnmarshal(object interface{}, dir string, fileName string) error {
 	return nil
 }
 
+// SetupInstanceDB - creates the service_instances DB if it does not exist
 func SetupInstanceDB(db *sql.DB) error {
 	_, err := db.Exec(`CREATE TABLE IF NOT EXISTS service_instances
 	(
@@ -59,6 +64,7 @@ func SetupInstanceDB(db *sql.DB) error {
 	return nil
 }
 
+// SetupBindingDB - creates the service_bindings DB if it does not exist
 func SetupBindingDB(db *sql.DB) error {
 	_, err := db.Exec(`CREATE TABLE IF NOT EXISTS service_bindings
 	(
@@ -76,6 +82,7 @@ func SetupBindingDB(db *sql.DB) error {
 	return nil
 }
 
+// UpdateServiceInstance - update service_instances database
 func UpdateServiceInstance(db *sql.DB, serviceInstanceID string, probability float64, frequency int) error {
 	_, err := db.Exec("UPDATE service_instances SET probability=?,frequency=? WHERE id=?", probability, frequency, serviceInstanceID)
 	if err != nil {
@@ -84,7 +91,8 @@ func UpdateServiceInstance(db *sql.DB, serviceInstanceID string, probability flo
 	return nil
 }
 
-func GetServiceInstance(db *sql.DB, serviceInstanceID string) (shared_model.ServiceInstance, error) {
+// GetServiceInstance - loads a service instance to memory from database
+func GetServiceInstance(db *sql.DB, serviceInstanceID string) (sharedModel.ServiceInstance, error) {
 	var (
 		id, dashboardURL, planID string
 		probability              float64
@@ -95,16 +103,17 @@ func GetServiceInstance(db *sql.DB, serviceInstanceID string) (shared_model.Serv
 	err := row.Scan(&id, &dashboardURL, &planID, &probability, &frequency)
 	if err != nil {
 		if err.Error() == "sql: no rows in result set" {
-			return shared_model.ServiceInstance{}, nil
+			return sharedModel.ServiceInstance{}, nil
 		}
-		return shared_model.ServiceInstance{}, err
+		return sharedModel.ServiceInstance{}, err
 	}
 	if id == "" {
-		return shared_model.ServiceInstance{}, err
+		return sharedModel.ServiceInstance{}, err
 	}
-	return shared_model.ServiceInstance{ID: id, DashboardURL: dashboardURL, PlanID: planID, Probability: probability, Frequency: frequency}, nil
+	return sharedModel.ServiceInstance{ID: id, DashboardURL: dashboardURL, PlanID: planID, Probability: probability, Frequency: frequency}, nil
 }
 
+// DeleteServiceInstanceBindings - deletes from service_bindings based on service instance ID
 func DeleteServiceInstanceBindings(db *sql.DB, serviceInstanceID string) error {
 	_, err := db.Exec("DELETE FROM service_bindings WHERE serviceInstanceID=?", serviceInstanceID)
 	if err != nil {
@@ -113,6 +122,7 @@ func DeleteServiceInstanceBindings(db *sql.DB, serviceInstanceID string) error {
 	return nil
 }
 
+// DeleteServiceBinding - deletes from service_bindings based on service binding ID
 func DeleteServiceBinding(db *sql.DB, serviceBindingID string) error {
 	_, err := db.Exec("DELETE FROM service_bindings WHERE id=?", serviceBindingID)
 	if err != nil {
@@ -121,7 +131,8 @@ func DeleteServiceBinding(db *sql.DB, serviceBindingID string) error {
 	return nil
 }
 
-func DeleteServiceInstance(db *sql.DB, serviceInstance shared_model.ServiceInstance) error {
+// DeleteServiceInstance - deletes from service_instances based on service instance ID
+func DeleteServiceInstance(db *sql.DB, serviceInstance sharedModel.ServiceInstance) error {
 	_, err := db.Exec("DELETE FROM service_instances WHERE id=?", serviceInstance.ID)
 	if err != nil {
 		return err
@@ -129,7 +140,8 @@ func DeleteServiceInstance(db *sql.DB, serviceInstance shared_model.ServiceInsta
 	return nil
 }
 
-func AddServiceBinding(db *sql.DB, serviceBinding shared_model.ServiceBinding) error {
+// AddServiceBinding - adds a row to service_bindings database
+func AddServiceBinding(db *sql.DB, serviceBinding sharedModel.ServiceBinding) error {
 	_, err := db.Exec("INSERT INTO service_bindings VALUES (?, ?, ?, ?, ?)", serviceBinding.ID, serviceBinding.AppID, serviceBinding.ServicePlanID, serviceBinding.ServiceInstanceID, serviceBinding.LastProcessed)
 	if err != nil {
 		return err
@@ -137,7 +149,8 @@ func AddServiceBinding(db *sql.DB, serviceBinding shared_model.ServiceBinding) e
 	return nil
 }
 
-func AddServiceInstance(db *sql.DB, serviceInstance shared_model.ServiceInstance) error {
+// AddServiceInstance - adds a row to service_isntances database
+func AddServiceInstance(db *sql.DB, serviceInstance sharedModel.ServiceInstance) error {
 	_, err := db.Exec("INSERT INTO service_instances VALUES (?, ?, ?, ?, ?)", serviceInstance.ID, serviceInstance.DashboardURL, serviceInstance.PlanID, serviceInstance.Probability, serviceInstance.Frequency)
 	if err != nil {
 		return err
@@ -145,6 +158,7 @@ func AddServiceInstance(db *sql.DB, serviceInstance shared_model.ServiceInstance
 	return nil
 }
 
+// MarshalAndRecord - Marshals and object to json and writes to file
 func MarshalAndRecord(object interface{}, dir string, fileName string) error {
 	MkDir(dir)
 	path := dir + string(os.PathSeparator) + fileName
@@ -157,6 +171,7 @@ func MarshalAndRecord(object interface{}, dir string, fileName string) error {
 	return WriteFile(path, bytes)
 }
 
+// WriteResponse - creates an http response
 func WriteResponse(w http.ResponseWriter, code int, object interface{}) {
 	var (
 		data []byte
@@ -176,6 +191,7 @@ func WriteResponse(w http.ResponseWriter, code int, object interface{}) {
 	fmt.Fprintf(w, string(data))
 }
 
+// ProvisionDataFromRequest - Unmarhsals json to object
 func ProvisionDataFromRequest(r *http.Request, object interface{}) error {
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
@@ -190,10 +206,12 @@ func ProvisionDataFromRequest(r *http.Request, object interface{}) error {
 	return nil
 }
 
+// ExtractVarsFromRequest - extracts variables from http request
 func ExtractVarsFromRequest(r *http.Request, varName string) string {
 	return mux.Vars(r)[varName]
 }
 
+// ReadFile - loads a file to a byte array
 func ReadFile(path string) (content []byte, err error) {
 	file, err := os.Open(path)
 	if err != nil {
@@ -210,6 +228,7 @@ func ReadFile(path string) (content []byte, err error) {
 	return
 }
 
+// WriteFile - write byte array to file
 func WriteFile(path string, content []byte) error {
 	err := ioutil.WriteFile(path, content, 0700)
 	if err != nil {
@@ -219,6 +238,7 @@ func WriteFile(path string, content []byte) error {
 	return nil
 }
 
+// GetPath - builds a path string using os native path seperators
 func GetPath(paths []string) string {
 	workDirectory, _ := os.Getwd()
 
@@ -236,6 +256,7 @@ func GetPath(paths []string) string {
 	return resultPath
 }
 
+// Exists - determines if a file exists
 func Exists(path string) bool {
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		return false
@@ -243,6 +264,7 @@ func Exists(path string) bool {
 	return true
 }
 
+// MkDir - Creates a directory
 func MkDir(path string) bool {
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		err = os.MkdirAll(path, 0700)

@@ -1,5 +1,6 @@
-package shared_model
+package sharedModel
 
+// ServiceInstance struct
 type ServiceInstance struct {
 	ID           string  `json:"id"`
 	DashboardURL string  `json:"dashboard_url"`

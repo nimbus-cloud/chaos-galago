@@ -1,5 +1,6 @@
 package model
 
+// VCAPApplication struct
 type VCAPApplication struct {
 	ApplicationName string   `json:"application_name"`
 	ApplicationURIs []string `json:"application_uris"`

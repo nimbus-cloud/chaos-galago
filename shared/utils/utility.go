@@ -1,21 +1,23 @@
-package shared_utils
+package sharedUtils
 
 import (
 	"chaos-galago/shared/model"
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	// sql Driver
 	_ "github.com/go-sql-driver/mysql"
 	"os"
 )
 
-func ReadServiceInstances(db *sql.DB) (map[string]shared_model.ServiceInstance, error) {
+// ReadServiceInstances - Loads service isntances to memory from Database
+func ReadServiceInstances(db *sql.DB) (map[string]sharedModel.ServiceInstance, error) {
 	var (
 		rows                *sql.Rows
 		err                 error
-		serviceInstancesMap map[string]shared_model.ServiceInstance
+		serviceInstancesMap map[string]sharedModel.ServiceInstance
 	)
-	serviceInstancesMap = make(map[string]shared_model.ServiceInstance)
+	serviceInstancesMap = make(map[string]sharedModel.ServiceInstance)
 	rows, err = db.Query("SELECT * FROM service_instances")
 	if err != nil {
 		return nil, err
@@ -30,7 +32,7 @@ func ReadServiceInstances(db *sql.DB) (map[string]shared_model.ServiceInstance, 
 		if err = rows.Scan(&id, &dashboardURL, &planID, &probability, &frequency); err != nil {
 			return nil, err
 		}
-		serviceInstance := shared_model.ServiceInstance{ID: id, DashboardURL: dashboardURL, PlanID: planID, Probability: probability, Frequency: frequency}
+		serviceInstance := sharedModel.ServiceInstance{ID: id, DashboardURL: dashboardURL, PlanID: planID, Probability: probability, Frequency: frequency}
 		serviceInstancesMap[id] = serviceInstance
 	}
 	if err = rows.Err(); err != nil {
@@ -39,14 +41,15 @@ func ReadServiceInstances(db *sql.DB) (map[string]shared_model.ServiceInstance, 
 	return serviceInstancesMap, nil
 }
 
-func ReadServiceBindings(db *sql.DB) (map[string]shared_model.ServiceBinding, error) {
+// ReadServiceBindings - Loads service bindings to memory from Database
+func ReadServiceBindings(db *sql.DB) (map[string]sharedModel.ServiceBinding, error) {
 	var (
 		rows               *sql.Rows
 		err                error
-		serviceBindingsMap map[string]shared_model.ServiceBinding
+		serviceBindingsMap map[string]sharedModel.ServiceBinding
 	)
 
-	serviceBindingsMap = make(map[string]shared_model.ServiceBinding)
+	serviceBindingsMap = make(map[string]sharedModel.ServiceBinding)
 	rows, err = db.Query("SELECT * FROM service_bindings")
 	if err != nil {
 		return nil, err
@@ -57,7 +60,7 @@ func ReadServiceBindings(db *sql.DB) (map[string]shared_model.ServiceBinding, er
 		if err = rows.Scan(&id, &appID, &servicePlanID, &serviceInstanceID, &lastProcessed); err != nil {
 			return nil, err
 		}
-		serviceBinding := shared_model.ServiceBinding{ID: id, AppID: appID, ServicePlanID: servicePlanID, ServiceInstanceID: serviceInstanceID, LastProcessed: lastProcessed}
+		serviceBinding := sharedModel.ServiceBinding{ID: id, AppID: appID, ServicePlanID: servicePlanID, ServiceInstanceID: serviceInstanceID, LastProcessed: lastProcessed}
 		serviceBindingsMap[id] = serviceBinding
 	}
 	if err = rows.Err(); err != nil {
@@ -66,9 +69,10 @@ func ReadServiceBindings(db *sql.DB) (map[string]shared_model.ServiceBinding, er
 	return serviceBindingsMap, nil
 }
 
+// GetDBConnectionDetails - Loads database connection details from UPS "chaos-galago-db"
 func GetDBConnectionDetails() (string, error) {
 	var (
-		vcapServices shared_model.VCAPServices
+		vcapServices sharedModel.VCAPServices
 		dbConnString string
 	)
 

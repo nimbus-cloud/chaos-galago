@@ -1,4 +1,4 @@
-package web_server_test
+package webServer_test
 
 import (
 	"bytes"
@@ -25,7 +25,7 @@ func Router(controller *webs.Controller) *mux.Router {
 	r.HandleFunc("/v2/service_instances/{service_instance_guid}/service_bindings/{service_binding_guid}", controller.UnBind).Methods("DELETE")
 	r.HandleFunc("/dashboard/{service_instance_guid}", controller.GetDashboard).Methods("GET")
 	r.HandleFunc("/dashboard/{service_instance_guid}", controller.UpdateServiceInstance).Methods("POST")
-	r.PathPrefix("/").Handler(http.FileServer(http.Dir("./web_server/resources/")))
+	r.PathPrefix("/").Handler(http.FileServer(http.Dir("./webServer/resources/")))
 
 	return r
 }
@@ -411,7 +411,7 @@ var _ = Describe("Contoller", func() {
 			controller   *webs.Controller
 			req          *http.Request
 			mockRecorder *httptest.ResponseRecorder
-			instance     shared_model.ServiceInstance
+			instance     sharedModel.ServiceInstance
 		)
 
 		BeforeEach(func() {
@@ -461,7 +461,7 @@ var _ = Describe("Contoller", func() {
 			controller   *webs.Controller
 			req          *http.Request
 			mockRecorder *httptest.ResponseRecorder
-			binding      shared_model.ServiceBinding
+			binding      sharedModel.ServiceBinding
 		)
 
 		BeforeEach(func() {

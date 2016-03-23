@@ -14,10 +14,12 @@ import (
 	"time"
 )
 
+// ShouldRun - determins of chaos should be run based on probability
 func ShouldRun(probability float64) bool {
 	return rand.Float64() <= probability
 }
 
+// IsAppHealthy - determins if an app is currently in "RUNNING" state
 func IsAppHealthy(appInstances map[string]cfclient.AppInstance) bool {
 	for _, instance := range appInstances {
 		if instance.State != "RUNNING" {
@@ -27,6 +29,7 @@ func IsAppHealthy(appInstances map[string]cfclient.AppInstance) bool {
 	return true
 }
 
+// PickAppInstance - selects an app instance index
 func PickAppInstance(appInstances map[string]cfclient.AppInstance) int {
 	for k := range appInstances {
 		value, _ := strconv.Atoi(k)
@@ -35,6 +38,7 @@ func PickAppInstance(appInstances map[string]cfclient.AppInstance) int {
 	return 0
 }
 
+// ShouldProcess - determines if chaos-galago should be run based on frequency and previous run
 func ShouldProcess(frequency int, lastProcessed string) bool {
 	if lastProcessed == "" {
 		return true
@@ -51,13 +55,14 @@ func ShouldProcess(frequency int, lastProcessed string) bool {
 	return false
 }
 
+// GetBoundApps - Loads bound apps into memory from database
 func GetBoundApps(db *sql.DB) []model.Service {
 	var services []model.Service
-	serviceInstances, err := shared_utils.ReadServiceInstances(db)
+	serviceInstances, err := sharedUtils.ReadServiceInstances(db)
 	if err != nil {
 		return services
 	}
-	serviceBindings, err := shared_utils.ReadServiceBindings(db)
+	serviceBindings, err := sharedUtils.ReadServiceBindings(db)
 	if err != nil {
 		return services
 	}
@@ -67,7 +72,7 @@ OUTER:
 		appID := binding.AppID
 		probability := serviceInstance.Probability
 		frequency := serviceInstance.Frequency
-		if serviceInstance == (shared_model.ServiceInstance{}) || appID == "" || probability == 0 || frequency == 0 {
+		if serviceInstance == (sharedModel.ServiceInstance{}) || appID == "" || probability == 0 || frequency == 0 {
 			continue OUTER
 		}
 		services = append(services, model.Service{AppID: appID, LastProcessed: binding.LastProcessed, Probability: probability, Frequency: frequency})
@@ -75,11 +80,13 @@ OUTER:
 	return services
 }
 
+// TimeNow - Formatted current time
 func TimeNow() string {
 	layout := "2006-01-02T15:04:05Z"
 	return time.Now().Format(layout)
 }
 
+// UpdateLastProcessed - writes the last processed time to service_bindings database
 func UpdateLastProcessed(db *sql.DB, appID string, lastProcessed string) error {
 	_, err := db.Exec("UPDATE service_bindings SET lastProcessed=? WHERE appID=?", lastProcessed, appID)
 	if err != nil {
@@ -88,6 +95,7 @@ func UpdateLastProcessed(db *sql.DB, appID string, lastProcessed string) error {
 	return nil
 }
 
+// LoadCFConfig - Loads "cf-service" UPS config
 func LoadCFConfig() *cfclient.Config {
 	var (
 		cfServices model.CFServices
