@@ -1,6 +1,6 @@
 # chaos-galago
 
-[![Build Status](https://travis-ci.org/FidelityInternational/chaos-galago.svg?branch=master)](https://travis-ci.org/FidelityInternational/chaos-galago)
+[![Go Report Card](https://goreportcard.com/badge/github.com/FidelityInternational/chaos-galago)](https://goreportcard.com/report/github.com/FidelityInternational/chaos-galago) [![Build Status](https://travis-ci.org/FidelityInternational/chaos-galago.svg?branch=master)](https://travis-ci.org/FidelityInternational/chaos-galago)
 
 ### Overview
 
