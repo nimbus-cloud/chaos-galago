@@ -7,8 +7,12 @@ go:
 
 go_import_path: chaos-galago
 
+before_install:
+  - go get -t ./...
+  - go get golang.org/x/tools/cmd/cover
+
 script:
-  - go test -v ./...
+  - go test -race -coverprofile=coverage.txt -covermode=atomic -v ./...
 
 after_success:
   - bash <(curl -s https://codecov.io/bash)
