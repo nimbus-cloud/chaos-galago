@@ -238,7 +238,7 @@ func WriteFile(path string, content []byte) error {
 	return nil
 }
 
-// GetPath - builds a path string using os native path seperators
+// GetPath - builds a path string using os native path separators
 func GetPath(paths []string) string {
 	workDirectory, _ := os.Getwd()
 

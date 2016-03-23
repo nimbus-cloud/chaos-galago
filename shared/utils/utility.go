@@ -10,7 +10,7 @@ import (
 	"os"
 )
 
-// ReadServiceInstances - Loads service isntances to memory from Database
+// ReadServiceInstances - Loads service instances to memory from Database
 func ReadServiceInstances(db *sql.DB) (map[string]sharedModel.ServiceInstance, error) {
 	var (
 		rows                *sql.Rows
