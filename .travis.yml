@@ -7,11 +7,5 @@ go:
 
 go_import_path: chaos-galago
 
-before_install:
-  - go get golang.org/x/tools/cmd/cover
-
 script:
-  - ./test.sh
-
-after_success:
-  - bash <(curl -s https://codecov.io/bash)
+  - go test -v ./...
