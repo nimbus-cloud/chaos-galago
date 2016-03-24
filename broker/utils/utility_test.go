@@ -16,6 +16,12 @@ import (
 	"os"
 )
 
+type stubReader struct{}
+
+func (reader stubReader) Read(p []byte) (n int, err error) {
+	return 0, fmt.Errorf("An error has occured: %s", "ioread error")
+}
+
 func Router() *mux.Router {
 	r := mux.NewRouter()
 	r.HandleFunc("/extract_vars_test/{example_var}", ExtractVarsFromRequestTest)
@@ -59,7 +65,7 @@ var _ = Describe("#ProvisionDataFromRequest", func() {
 			})
 
 			It("populates the passed object", func() {
-				err := utils.ProvisionDataFromRequest(req, &exampleObject)
+				err := utils.ProvisionDataFromRequest(req.Body, &exampleObject)
 				Expect(err).To(BeNil())
 				Expect(exampleObject.Name).To(Equal("provision_data_test"))
 			})
@@ -67,8 +73,14 @@ var _ = Describe("#ProvisionDataFromRequest", func() {
 
 		Context("and the body cannot be unmarshalled into the provided object", func() {
 			It("Raises an error", func() {
-				Expect(utils.ProvisionDataFromRequest(req, "test").Error()).To(Equal("unexpected end of JSON input"))
+				Expect(utils.ProvisionDataFromRequest(req.Body, "test").Error()).To(Equal("unexpected end of JSON input"))
 			})
+		})
+	})
+
+	Context("when body cannot be read", func() {
+		It("Raises an error", func() {
+			Expect(utils.ProvisionDataFromRequest(stubReader{}, "test").Error()).To(Equal("An error has occured: ioread error"))
 		})
 	})
 })
@@ -154,6 +166,26 @@ var _ = Describe("#UpdateServiceInstance", func() {
 		mock.ExpectExec("UPDATE service_instances.*").WithArgs(probability, frequency, instanceID).WillReturnResult(sqlmock.NewResult(1, 1))
 		Expect(utils.UpdateServiceInstance(db, instanceID, probability, frequency)).To(BeNil())
 	})
+
+	Context("When the sql update command raies an error", func() {
+		It("returns an error", func() {
+			db, mock, err := sqlmock.New()
+			if err != nil {
+				fmt.Printf("\nan error '%s' was not expected when opening a stub database connection\n", err)
+				os.Exit(1)
+			}
+			defer db.Close()
+
+			probability := 0.2
+			frequency := 5
+			instanceID := "test"
+
+			mock.ExpectExec("UPDATE service_instances.*").WithArgs(probability, frequency, instanceID).WillReturnError(fmt.Errorf("An error has occured: %s", "UPDATE error"))
+			err = utils.UpdateServiceInstance(db, instanceID, probability, frequency)
+			Expect(err).ToNot(BeNil())
+			Expect(err.Error()).To(Equal("An error has occured: UPDATE error"))
+		})
+	})
 })
 
 var _ = Describe("#DeleteServiceInstance", func() {
@@ -182,6 +214,36 @@ var _ = Describe("#DeleteServiceInstance", func() {
 		mock.ExpectExec("DELETE FROM service_instances WHERE id=").WithArgs(instanceID).WillReturnResult(sqlmock.NewResult(1, 1))
 		Expect(utils.DeleteServiceInstance(db, instance)).To(BeNil())
 	})
+
+	Context("When the sql delete command raises and error", func() {
+		It("returns an error", func() {
+			var instance sharedModel.ServiceInstance
+			db, mock, err := sqlmock.New()
+			if err != nil {
+				fmt.Printf("\nan error '%s' was not expected when opening a stub database connection\n", err)
+				os.Exit(1)
+			}
+			defer db.Close()
+
+			probability := 0.2
+			frequency := 5
+			planID := "default"
+			instanceID := "test"
+			applicationURI := "example.com"
+			dashboardURL := fmt.Sprintf("https://%s/dashboard/%s", applicationURI, instanceID)
+
+			instance.DashboardURL = dashboardURL
+			instance.ID = instanceID
+			instance.PlanID = planID
+			instance.Probability = probability
+			instance.Frequency = frequency
+
+			mock.ExpectExec("DELETE FROM service_instances WHERE id=").WithArgs(instanceID).WillReturnError(fmt.Errorf("An error has occured: %s", "DELETE error"))
+			err = utils.DeleteServiceInstance(db, instance)
+			Expect(err).ToNot(BeNil())
+			Expect(err.Error()).To(Equal("An error has occured: DELETE error"))
+		})
+	})
 })
 
 var _ = Describe("#DeleteServiceBinding", func() {
@@ -198,6 +260,24 @@ var _ = Describe("#DeleteServiceBinding", func() {
 		mock.ExpectExec("DELETE FROM service_bindings WHERE id=").WithArgs(bindingID).WillReturnResult(sqlmock.NewResult(1, 1))
 		Expect(utils.DeleteServiceBinding(db, bindingID)).To(BeNil())
 	})
+
+	Context("When the sql delete command raises and error", func() {
+		It("returns an error", func() {
+			db, mock, err := sqlmock.New()
+			if err != nil {
+				fmt.Printf("\nan error '%s' was not expected when opening a stub database connection\n", err)
+				os.Exit(1)
+			}
+			defer db.Close()
+
+			bindingID := "test"
+
+			mock.ExpectExec("DELETE FROM service_bindings WHERE id=").WithArgs(bindingID).WillReturnError(fmt.Errorf("An error has occured: %s", "DELETE error"))
+			err = utils.DeleteServiceBinding(db, bindingID)
+			Expect(err).ToNot(BeNil())
+			Expect(err.Error()).To(Equal("An error has occured: DELETE error"))
+		})
+	})
 })
 
 var _ = Describe("#DeleteServiceInstanceBindings", func() {
@@ -213,6 +293,24 @@ var _ = Describe("#DeleteServiceInstanceBindings", func() {
 
 		mock.ExpectExec("DELETE FROM service_bindings WHERE serviceInstanceID=").WithArgs(instanceID).WillReturnResult(sqlmock.NewResult(1, 1))
 		Expect(utils.DeleteServiceInstanceBindings(db, instanceID)).To(BeNil())
+	})
+
+	Context("When the sql delete command raises and error", func() {
+		It("returns an error", func() {
+			db, mock, err := sqlmock.New()
+			if err != nil {
+				fmt.Printf("\nan error '%s' was not expected when opening a stub database connection\n", err)
+				os.Exit(1)
+			}
+			defer db.Close()
+
+			instanceID := "test"
+
+			mock.ExpectExec("DELETE FROM service_bindings WHERE serviceInstanceID=").WithArgs(instanceID).WillReturnError(fmt.Errorf("An error has occured: %s", "DELETE error"))
+			err = utils.DeleteServiceInstanceBindings(db, instanceID)
+			Expect(err).ToNot(BeNil())
+			Expect(err.Error()).To(Equal("An error has occured: DELETE error"))
+		})
 	})
 })
 
@@ -242,6 +340,36 @@ var _ = Describe("#AddServiceInstance", func() {
 		mock.ExpectExec("INSERT INTO service_instances").WithArgs(instanceID, dashboardURL, planID, probability, frequency).WillReturnResult(sqlmock.NewResult(1, 1))
 		Expect(utils.AddServiceInstance(db, instance)).To(BeNil())
 	})
+
+	Context("When the sql insert command raises and error", func() {
+		It("returns an error", func() {
+			var instance sharedModel.ServiceInstance
+			db, mock, err := sqlmock.New()
+			if err != nil {
+				fmt.Printf("\nan error '%s' was not expected when opening a stub database connection\n", err)
+				os.Exit(1)
+			}
+			defer db.Close()
+
+			probability := 0.2
+			frequency := 5
+			planID := "default"
+			instanceID := "test"
+			applicationURI := "example.com"
+			dashboardURL := fmt.Sprintf("https://%s/dashboard/%s", applicationURI, instanceID)
+
+			instance.DashboardURL = dashboardURL
+			instance.ID = instanceID
+			instance.PlanID = planID
+			instance.Probability = probability
+			instance.Frequency = frequency
+
+			mock.ExpectExec("INSERT INTO service_instances").WithArgs(instanceID, dashboardURL, planID, probability, frequency).WillReturnError(fmt.Errorf("An error has occured: %s", "INSERT error"))
+			err = utils.AddServiceInstance(db, instance)
+			Expect(err).ToNot(BeNil())
+			Expect(err.Error()).To(Equal("An error has occured: INSERT error"))
+		})
+	})
 })
 
 var _ = Describe("#AddServiceBinding", func() {
@@ -265,6 +393,32 @@ var _ = Describe("#AddServiceBinding", func() {
 
 		mock.ExpectExec("INSERT INTO service_bindings").WithArgs(bindingID, appID, planID, instanceID, "").WillReturnResult(sqlmock.NewResult(1, 1))
 		Expect(utils.AddServiceBinding(db, binding)).To(BeNil())
+	})
+
+	Context("When the sql insert command raises and error", func() {
+		It("returns an error", func() {
+			var binding sharedModel.ServiceBinding
+			db, mock, err := sqlmock.New()
+			if err != nil {
+				fmt.Printf("\nan error '%s' was not expected when opening a stub database connection\n", err)
+				os.Exit(1)
+			}
+			defer db.Close()
+			planID := "default"
+			instanceID := "test"
+			bindingID := "test"
+			appID := "test"
+
+			binding.ID = bindingID
+			binding.ServicePlanID = planID
+			binding.ServiceInstanceID = instanceID
+			binding.AppID = appID
+
+			mock.ExpectExec("INSERT INTO service_bindings").WithArgs(bindingID, appID, planID, instanceID, "").WillReturnError(fmt.Errorf("An error has occured: %s", "INSERT error"))
+			err = utils.AddServiceBinding(db, binding)
+			Expect(err).ToNot(BeNil())
+			Expect(err.Error()).To(Equal("An error has occured: INSERT error"))
+		})
 	})
 })
 
@@ -296,6 +450,22 @@ var _ = Describe("#SetupInstanceDB", func() {
 			Expect(utils.SetupInstanceDB(db)).To(BeNil())
 		})
 	})
+
+	Context("When the create command returns an error", func() {
+		It("Returns an error", func() {
+			db, mock, err := sqlmock.New()
+			if err != nil {
+				fmt.Printf("\nan error '%s' was not expected when opening a stub database connection\n", err)
+				os.Exit(1)
+			}
+			defer db.Close()
+
+			mock.ExpectExec("CREATE TABLE").WillReturnError(fmt.Errorf("An error has occured: %s", "Database Create Error"))
+			err = utils.SetupInstanceDB(db)
+			Expect(err).ToNot(BeNil())
+			Expect(err.Error()).To(Equal("An error has occured: Database Create Error"))
+		})
+	})
 })
 
 var _ = Describe("#SetupBindingDB", func() {
@@ -324,6 +494,22 @@ var _ = Describe("#SetupBindingDB", func() {
 
 			mock.ExpectExec("CREATE TABLE").WillReturnResult(sqlmock.NewResult(1, 1))
 			Expect(utils.SetupBindingDB(db)).To(BeNil())
+		})
+	})
+
+	Context("When the create command returns an error", func() {
+		It("Returns an error", func() {
+			db, mock, err := sqlmock.New()
+			if err != nil {
+				fmt.Printf("\nan error '%s' was not expected when opening a stub database connection\n", err)
+				os.Exit(1)
+			}
+			defer db.Close()
+
+			mock.ExpectExec("CREATE TABLE").WillReturnError(fmt.Errorf("An error has occured: %s", "Database Create Error"))
+			err = utils.SetupBindingDB(db)
+			Expect(err).ToNot(BeNil())
+			Expect(err.Error()).To(Equal("An error has occured: Database Create Error"))
 		})
 	})
 })
@@ -370,6 +556,46 @@ var _ = Describe("#GetServiceInstance", func() {
 			Expect(serviceInstance).To(Equal(sharedModel.ServiceInstance{}))
 		})
 	})
+
+	Context("when a row cannot be scanned", func() {
+		It("returns an error", func() {
+			db, mock, err := sqlmock.New()
+			if err != nil {
+				fmt.Printf("\nan error '%s' was not expected when opening a stub database connection\n", err)
+				os.Exit(1)
+			}
+			defer db.Close()
+
+			rows := sqlmock.NewRows([]string{"id", "dashboardURL", "planID", "probability"}).
+				AddRow("1", "example.com/1", "1", 0.2)
+
+			mock.ExpectQuery("^SELECT (.+) FROM service_instances WHERE id=").WillReturnRows(rows)
+
+			serviceInstance, err = utils.GetServiceInstance(db, "1")
+			Expect(err).ToNot(BeNil())
+			Expect(err.Error()).To(Equal("sql: expected 4 destination arguments in Scan, not 5"))
+		})
+	})
+
+	Context("when id is blank", func() {
+		It("returns an error", func() {
+			db, mock, err := sqlmock.New()
+			if err != nil {
+				fmt.Printf("\nan error '%s' was not expected when opening a stub database connection\n", err)
+				os.Exit(1)
+			}
+			defer db.Close()
+
+			rows := sqlmock.NewRows([]string{"id", "dashboardURL", "planID", "probability", "frequency"}).
+				AddRow("", "example.com/1", "1", 0.2, 5)
+
+			mock.ExpectQuery("^SELECT (.+) FROM service_instances WHERE id=").WillReturnRows(rows)
+
+			serviceInstance, err = utils.GetServiceInstance(db, "1")
+			Expect(err).ToNot(BeNil())
+			Expect(err.Error()).To(Equal("ID cannot be nil"))
+		})
+	})
 })
 
 var _ = Describe("#GetVCAPApplicationVars", func() {
@@ -411,6 +637,14 @@ var _ = Describe("#GetPath", func() {
 		currentDir, _ := os.Getwd()
 		Expect(fullPath).To(MatchRegexp("test.json"))
 		Expect(fullPath).To(ContainSubstring(currentDir))
+	})
+
+	Context("When path is nil", func() {
+		It("returns the current working directory", func() {
+			fullPath := utils.GetPath([]string{})
+			currentDir, _ := os.Getwd()
+			Expect(fullPath).To(Equal(currentDir))
+		})
 	})
 })
 

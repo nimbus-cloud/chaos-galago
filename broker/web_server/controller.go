@@ -62,7 +62,7 @@ func (c *Controller) CreateServiceInstance(w http.ResponseWriter, r *http.Reques
 	)
 	fmt.Println("Create Service Instance...")
 
-	err := utils.ProvisionDataFromRequest(r, &instance)
+	err := utils.ProvisionDataFromRequest(r.Body, &instance)
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -196,7 +196,7 @@ func (c *Controller) Bind(w http.ResponseWriter, r *http.Request) {
 	bindingID := utils.ExtractVarsFromRequest(r, "service_binding_guid")
 	instanceID := utils.ExtractVarsFromRequest(r, "service_instance_guid")
 
-	err := utils.ProvisionDataFromRequest(r, &binding)
+	err := utils.ProvisionDataFromRequest(r.Body, &binding)
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)

@@ -7,7 +7,9 @@ import (
 	"chaos-galago/broker/Godeps/_workspace/src/github.com/gorilla/mux"
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -108,7 +110,7 @@ func GetServiceInstance(db *sql.DB, serviceInstanceID string) (sharedModel.Servi
 		return sharedModel.ServiceInstance{}, err
 	}
 	if id == "" {
-		return sharedModel.ServiceInstance{}, err
+		return sharedModel.ServiceInstance{}, errors.New("ID cannot be nil")
 	}
 	return sharedModel.ServiceInstance{ID: id, DashboardURL: dashboardURL, PlanID: planID, Probability: probability, Frequency: frequency}, nil
 }
@@ -179,8 +181,8 @@ func WriteResponse(w http.ResponseWriter, code int, object interface{}) {
 }
 
 // ProvisionDataFromRequest - Unmarhsals json to object
-func ProvisionDataFromRequest(r *http.Request, object interface{}) error {
-	body, err := ioutil.ReadAll(r.Body)
+func ProvisionDataFromRequest(r io.Reader, object interface{}) error {
+	body, err := ioutil.ReadAll(r)
 	if err != nil {
 		return err
 	}
