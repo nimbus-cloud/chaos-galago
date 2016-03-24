@@ -233,14 +233,6 @@ func GetPath(paths []string) string {
 	return resultPath
 }
 
-// Exists - determines if a file exists
-func Exists(path string) bool {
-	if _, err := os.Stat(path); os.IsNotExist(err) {
-		return false
-	}
-	return true
-}
-
 // MkDir - Creates a directory
 func MkDir(path string) bool {
 	if _, err := os.Stat(path); os.IsNotExist(err) {
