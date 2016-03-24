@@ -232,15 +232,3 @@ func GetPath(paths []string) string {
 
 	return resultPath
 }
-
-// MkDir - Creates a directory
-func MkDir(path string) bool {
-	if _, err := os.Stat(path); os.IsNotExist(err) {
-		err = os.MkdirAll(path, 0700)
-		if err != nil {
-			return false
-		}
-	}
-
-	return true
-}
