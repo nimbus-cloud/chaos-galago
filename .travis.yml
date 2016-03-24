@@ -15,4 +15,4 @@ script:
   - gotestcover -coverprofile=coverage.txt -race -covermode=atomic -v ./...
 
 after_success:
-  - bash <curl -s https://codecov.io/bash)
+  - bash <(curl -s https://codecov.io/bash)
