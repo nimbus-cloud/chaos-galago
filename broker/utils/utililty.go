@@ -215,16 +215,6 @@ func ReadFile(path string) (content []byte, err error) {
 	return
 }
 
-// WriteFile - write byte array to file
-func WriteFile(path string, content []byte) error {
-	err := ioutil.WriteFile(path, content, 0700)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 // GetPath - builds a path string using os native path separators
 func GetPath(paths []string) string {
 	workDirectory, _ := os.Getwd()
