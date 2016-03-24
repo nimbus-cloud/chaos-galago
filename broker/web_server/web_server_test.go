@@ -417,18 +417,7 @@ var _ = Describe("Contoller", func() {
 			instance     sharedModel.ServiceInstance
 		)
 
-		BeforeEach(func() {
-			vcapApplicationJSON := `{"application_name": "test", "application_uris": ["example.com"]}`
-			os.Setenv("VCAP_APPLICATION", vcapApplicationJSON)
-			os.Setenv("PROBABILITY", "0.2")
-			os.Setenv("FREQUENCY", "5")
-			reqJSON := `{
-  "organization_guid": "org-guid-here",
-  "plan_id":           "plan-guid-here",
-  "service_id":        "service-guid-here",
-  "space_guid":        "space-guid-here"
- }`
-			req, _ = http.NewRequest("PUT", "http://example.com/v2/service_instances/test", bytes.NewReader([]byte(reqJSON)))
+		JustBeforeEach(func() {
 			mockRecorder = httptest.NewRecorder()
 			probability := 0.2
 			frequency := 5
@@ -443,19 +432,120 @@ var _ = Describe("Contoller", func() {
 			instance.Probability = probability
 			instance.Frequency = frequency
 			mock.ExpectExec("INSERT INTO service_instances").WithArgs(instanceID, dashboardURL, planID, probability, frequency).WillReturnResult(sqlmock.NewResult(1, 1))
-			controller = webs.CreateController(db, conf)
 			Router(controller).ServeHTTP(mockRecorder, req)
 		})
 
-		AfterEach(func() {
-			os.Unsetenv("VCAP_APPLICATION")
-			os.Unsetenv("PROBABILITY")
-			os.Unsetenv("FREQUENCY")
+		BeforeEach(func() {
+			reqJSON := `{
+  "organization_guid": "org-guid-here",
+  "plan_id":           "plan-guid-here",
+  "service_id":        "service-guid-here",
+  "space_guid":        "space-guid-here"
+ }`
+			req, _ = http.NewRequest("PUT", "http://example.com/v2/service_instances/test", bytes.NewReader([]byte(reqJSON)))
 		})
 
-		It("Adds a instance and returns dashboard URL, probability and frequency", func() {
-			Expect(mockRecorder.Code).To(Equal(201))
-			Expect(mockRecorder.Body.String()).To(Equal(`{"dashboard_url":"https://example.com/dashboard/test","probability":0.2,"frequency":5}`))
+		Context("when VCAP_APPLICATION is set", func() {
+			BeforeEach(func() {
+				vcapApplicationJSON := `{"application_name": "test", "application_uris": ["example.com"]}`
+				os.Setenv("VCAP_APPLICATION", vcapApplicationJSON)
+			})
+
+			AfterEach(func() {
+				os.Unsetenv("VCAP_APPLICATION")
+			})
+
+			Context("and PROBABILITY is set", func() {
+				Context("and it is set via ENV", func() {
+					BeforeEach(func() {
+						os.Setenv("PROBABILITY", "0.2")
+						controller = webs.CreateController(db, conf)
+					})
+
+					AfterEach(func() {
+						os.Unsetenv("PROBABILITY")
+					})
+
+					Context("and FREQUENCY is set via ENV", func() {
+						BeforeEach(func() {
+							os.Setenv("FREQUENCY", "5")
+						})
+
+						AfterEach(func() {
+							os.Unsetenv("FREQUENCY")
+						})
+
+						It("Adds a instance and returns dashboard URL, probability and frequency", func() {
+							Expect(mockRecorder.Code).To(Equal(201))
+							Expect(mockRecorder.Body.String()).To(Equal(`{"dashboard_url":"https://example.com/dashboard/test","probability":0.2,"frequency":5}`))
+						})
+
+						Context("and request json is invalid", func() {
+							BeforeEach(func() {
+								reqJSON := `{
+  "organization_guid": "org-guid-her
+  "space_guid":        "space-guid-here"
+ }`
+								req, _ = http.NewRequest("PUT", "http://example.com/v2/service_instances/test", bytes.NewReader([]byte(reqJSON)))
+							})
+
+							It("returns an error 500", func() {
+								Expect(os.Getenv("VCAP_APPLICATION")).To(Equal(`{"application_name": "test", "application_uris": ["example.com"]}`))
+								Expect(os.Getenv("PROBABILITY")).To(Equal("0.2"))
+								Expect(os.Getenv("FREQUENCY")).To(Equal("5"))
+								Expect(mockRecorder.Code).To(Equal(500))
+							})
+						})
+					})
+
+					Context("and FREQUENCY is unset", func() {
+						It("returns an error 500", func() {
+							Expect(os.Getenv("VCAP_APPLICATION")).To(Equal(`{"application_name": "test", "application_uris": ["example.com"]}`))
+							Expect(os.Getenv("PROBABILITY")).To(Equal("0.2"))
+							Expect(os.Getenv("FREQUENCY")).To(Equal(""))
+							Expect(mockRecorder.Code).To(Equal(500))
+						})
+					})
+				})
+
+				Context("and it is set via conf", func() {
+					Context("and FREQUENCY is set via conf", func() {
+
+						BeforeEach(func() {
+							conf = &config.Config{DefaultProbability: 0.2, DefaultFrequency: 5}
+							controller = webs.CreateController(db, conf)
+						})
+
+						It("Adds a instance and returns dashboard URL, probability and frequency", func() {
+							Expect(mockRecorder.Code).To(Equal(201))
+							Expect(mockRecorder.Body.String()).To(Equal(`{"dashboard_url":"https://example.com/dashboard/test","probability":0.2,"frequency":5}`))
+						})
+					})
+				})
+			})
+
+			Context("and PROBABILITY is unset", func() {
+				BeforeEach(func() {
+					controller = webs.CreateController(db, conf)
+				})
+
+				It("returns an error 500", func() {
+					Expect(os.Getenv("VCAP_APPLICATION")).To(Equal(`{"application_name": "test", "application_uris": ["example.com"]}`))
+					Expect(os.Getenv("PROBABILITY")).To(Equal(""))
+					Expect(mockRecorder.Code).To(Equal(500))
+				})
+			})
+		})
+
+		Context("when VCAP_APPLICATION is unset", func() {
+			BeforeEach(func() {
+				controller = webs.CreateController(db, conf)
+			})
+
+			It("returns an error 500", func() {
+				Expect(os.Getenv("VCAP_APPLICATION")).To(Equal(""))
+				Expect(mockRecorder.Code).To(Equal(500))
+			})
 		})
 	})
 
