@@ -158,19 +158,6 @@ func AddServiceInstance(db *sql.DB, serviceInstance sharedModel.ServiceInstance)
 	return nil
 }
 
-// MarshalAndRecord - Marshals and object to json and writes to file
-func MarshalAndRecord(object interface{}, dir string, fileName string) error {
-	MkDir(dir)
-	path := dir + string(os.PathSeparator) + fileName
-
-	bytes, err := json.MarshalIndent(object, "", " ")
-	if err != nil {
-		return err
-	}
-
-	return WriteFile(path, bytes)
-}
-
 // WriteResponse - creates an http response
 func WriteResponse(w http.ResponseWriter, code int, object interface{}) {
 	var (
