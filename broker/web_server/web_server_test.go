@@ -618,51 +618,121 @@ var _ = Describe("Contoller", func() {
 		)
 
 		BeforeEach(func() {
-			reqJSON := `{
+			mockRecorder = httptest.NewRecorder()
+		})
+
+		JustBeforeEach(func() {
+			controller = webs.CreateController(db, conf)
+			Router(controller).ServeHTTP(mockRecorder, req)
+		})
+
+		Context("when the request body is invalid", func() {
+			BeforeEach(func() {
+				reqJSON := `{
+  "plan_id":      "plan-guid-h
+  "service_id":   "service-guiere"
+ }`
+				req, _ = http.NewRequest("PUT", "http://example.com/v2/service_instances/test/service_bindings/1", bytes.NewReader([]byte(reqJSON)))
+			})
+
+			It("returns an error 500", func() {
+				Expect(mockRecorder.Code).To(Equal(500))
+			})
+		})
+
+		Context("when the request body is valid", func() {
+			BeforeEach(func() {
+				reqJSON := `{
   "plan_id":      "plan-guid-here",
   "service_id":   "service-guid-here",
   "app_guid":     "app-guid-here"
  }`
-			req, _ = http.NewRequest("PUT", "http://example.com/v2/service_instances/test/service_bindings/1", bytes.NewReader([]byte(reqJSON)))
-			mockRecorder = httptest.NewRecorder()
-		})
-
-		Context("When the service instance exists", func() {
-			BeforeEach(func() {
-				planID := "1"
-				instanceID := "test"
-				bindingID := "1"
-				appID := "app-guid-here"
-
-				binding.ID = bindingID
-				binding.ServicePlanID = planID
-				binding.ServiceInstanceID = instanceID
-				binding.AppID = appID
-
-				rows := sqlmock.NewRows([]string{"id", "dashboardURL", "planID", "probability", "frequency"}).
-					AddRow("test", "https://example.com/dashboard/1", "1", 0.2, 5)
-				mock.ExpectQuery("^SELECT (.+) FROM service_instances WHERE id=").WithArgs("test").WillReturnRows(rows)
-				mock.ExpectExec("INSERT INTO service_bindings").WithArgs(bindingID, appID, planID, instanceID, "").WillReturnResult(sqlmock.NewResult(1, 1))
-				controller = webs.CreateController(db, conf)
-				Router(controller).ServeHTTP(mockRecorder, req)
+				req, _ = http.NewRequest("PUT", "http://example.com/v2/service_instances/test/service_bindings/1", bytes.NewReader([]byte(reqJSON)))
 			})
 
-			It("Adds a binding and returns credentials", func() {
-				Expect(mockRecorder.Code).To(Equal(201))
-				Expect(mockRecorder.Body.String()).To(Equal(`{"credentials":{"probability":0.2,"frequency":5}}`))
-			})
-		})
+			Context("and the service instance exists", func() {
+				Context("and the service instance can be fetched", func() {
+					BeforeEach(func() {
+						rows := sqlmock.NewRows([]string{"id", "dashboardURL", "planID", "probability", "frequency"}).
+							AddRow("test", "https://example.com/dashboard/1", "1", 0.2, 5)
+						mock.ExpectQuery("^SELECT (.+) FROM service_instances WHERE id=").WithArgs("test").WillReturnRows(rows)
+					})
 
-		Context("When the service instance does not exist", func() {
-			BeforeEach(func() {
-				rows := sqlmock.NewRows([]string{"id", "dashboardURL", "planID", "probability", "frequency"})
-				mock.ExpectQuery("^SELECT (.+) FROM service_instances WHERE id=").WithArgs("test").WillReturnRows(rows)
-				controller = webs.CreateController(db, conf)
-				Router(controller).ServeHTTP(mockRecorder, req)
+					Context("and the binding appID is not nil", func() {
+						var (
+							planID     = "1"
+							instanceID = "test"
+							bindingID  = "1"
+							appID      = "app-guid-here"
+						)
+
+						BeforeEach(func() {
+							binding.ID = bindingID
+							binding.ServicePlanID = planID
+							binding.ServiceInstanceID = instanceID
+							binding.AppID = appID
+						})
+
+						Context("and the service binding can be added", func() {
+							BeforeEach(func() {
+								mock.ExpectExec("INSERT INTO service_bindings").WithArgs(bindingID, appID, planID, instanceID, "").WillReturnResult(sqlmock.NewResult(1, 1))
+							})
+
+							It("Adds a binding and returns credentials", func() {
+								Expect(mockRecorder.Code).To(Equal(201))
+								Expect(mockRecorder.Body.String()).To(Equal(`{"credentials":{"probability":0.2,"frequency":5}}`))
+							})
+						})
+
+						Context("and the service binding cannot be added", func() {
+							BeforeEach(func() {
+								mock.ExpectExec("INSERT INTO service_bindings").WithArgs(bindingID, appID, planID, instanceID, "").WillReturnError(fmt.Errorf("An error has occurred: %s", "DB error"))
+							})
+
+							It("returns an error 500", func() {
+								Expect(mockRecorder.Code).To(Equal(500))
+							})
+						})
+					})
+
+					Context("and the binding appID is nil", func() {
+						BeforeEach(func() {
+							reqJSON := `{
+  "plan_id":      "plan-guid-here",
+  "service_id":   "service-guid-here",
+  "app_guid":     ""
+ }`
+							req, _ = http.NewRequest("PUT", "http://example.com/v2/service_instances/test/service_bindings/1", bytes.NewReader([]byte(reqJSON)))
+						})
+
+						It("returns an error 500", func() {
+							Expect(mockRecorder.Code).To(Equal(500))
+						})
+					})
+				})
+
+				Context("and the service instance cannot be fetched", func() {
+					BeforeEach(func() {
+						mock.ExpectQuery("^SELECT (.+) FROM service_instances WHERE id=").WithArgs("test").WillReturnError(fmt.Errorf("An error has occurred: %s", "DB error"))
+					})
+
+					It("returns an error 500", func() {
+						Expect(mockRecorder.Code).To(Equal(500))
+					})
+				})
 			})
 
-			It("Adds a binding and returns credentials", func() {
-				Expect(mockRecorder.Code).To(Equal(404))
+			Context("When the service instance does not exist", func() {
+				BeforeEach(func() {
+					rows := sqlmock.NewRows([]string{"id", "dashboardURL", "planID", "probability", "frequency"})
+					mock.ExpectQuery("^SELECT (.+) FROM service_instances WHERE id=").WithArgs("test").WillReturnRows(rows)
+					controller = webs.CreateController(db, conf)
+					Router(controller).ServeHTTP(mockRecorder, req)
+				})
+
+				It("Adds a binding and returns credentials", func() {
+					Expect(mockRecorder.Code).To(Equal(404))
+				})
 			})
 		})
 	})
