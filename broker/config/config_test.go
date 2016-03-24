@@ -23,7 +23,7 @@ var _ = Describe("#LoadConfig_#GetConfig", func() {
 		It("returns an error", func() {
 			_, err := LoadConfig("fixtures/no_config.json")
 			Expect(err).ToNot(BeNil())
-			Expect(err.Error()).To(Equal("open fixtures/no_config.json: no such file or directory"))
+			Expect(err.Error()).To(MatchRegexp("open fixtures/no_config.json"))
 		})
 	})
 
