@@ -295,29 +295,56 @@ var _ = Describe("Contoller", func() {
 		})
 
 		Context("When the service instance exists", func() {
-			BeforeEach(func() {
-				rows := sqlmock.NewRows([]string{"id", "dashboardURL", "planID", "probability", "frequency"}).
-					AddRow("1", "https://example.com/dashboard/1", "1", 0.2, 5)
-				mock.ExpectQuery("^SELECT (.+) FROM service_instances WHERE id=").WithArgs("1").WillReturnRows(rows)
+			JustBeforeEach(func() {
 				req, _ = http.NewRequest("GET", "http://example.com/dashboard/1", nil)
 				Router(controller).ServeHTTP(mockRecorder, req)
 			})
-			It("returns the form", func() {
-				Expect(mockRecorder.Code).To(Equal(200))
-				Expect(mockRecorder.Body.String()).To(Equal(response))
+
+			Context("and the service instance can be fetched", func() {
+				BeforeEach(func() {
+					rows := sqlmock.NewRows([]string{"id", "dashboardURL", "planID", "probability", "frequency"}).
+						AddRow("1", "https://example.com/dashboard/1", "1", 0.2, 5)
+					mock.ExpectQuery("^SELECT (.+) FROM service_instances WHERE id=").WithArgs("1").WillReturnRows(rows)
+				})
+
+				It("returns the form", func() {
+					Expect(mockRecorder.Code).To(Equal(200))
+					Expect(mockRecorder.Body.String()).To(Equal(response))
+				})
+			})
+
+			Context("and the service instance cannot be fetched", func() {
+				BeforeEach(func() {
+					mock.ExpectQuery("^SELECT (.+) FROM service_instances WHERE id=").WithArgs("1").WillReturnError(fmt.Errorf("An error has occurred: %s", "DB error"))
+				})
+			})
+
+			It("returns an error 500", func() {
+				Expect(mockRecorder.Code).To(Equal(500))
+			})
+
+			Context("when the service instance does not exist in the DB", func() {
+				BeforeEach(func() {
+					rows := sqlmock.NewRows([]string{"id", "dashboardURL", "planID", "probability", "frequency"})
+					mock.ExpectQuery("^SELECT (.+) FROM service_instances WHERE id=").WithArgs("1").WillReturnRows(rows)
+				})
+
+				It("returns a 410", func() {
+					Expect(mockRecorder.Code).To(Equal(410))
+				})
 			})
 		})
 
-		Context("When the service instance does not exist", func() {
+		Context("When the service instance does not exist at all", func() {
 			BeforeEach(func() {
 				rows := sqlmock.NewRows([]string{"id", "dashboardURL", "planID", "probability", "frequency"})
 				mock.ExpectQuery("^SELECT (.+) FROM service_instances WHERE id=").WithArgs("2").WillReturnRows(rows)
 				req, _ = http.NewRequest("GET", "http://example.com/v2/service_instances/2/service_bindings/2", nil)
 				Router(controller).ServeHTTP(mockRecorder, req)
-				It("returns the form", func() {
-					Expect(mockRecorder.Code).To(Equal(400))
-					Expect(mockRecorder.Body.String()).To(Equal(""))
-				})
+			})
+
+			It("returns a 404", func() {
+				Expect(mockRecorder.Code).To(Equal(404))
 			})
 		})
 	})
