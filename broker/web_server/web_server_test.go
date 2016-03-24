@@ -381,17 +381,32 @@ var _ = Describe("Contoller", func() {
 		})
 
 		Context("When the service instance exists", func() {
-			BeforeEach(func() {
-				rows := sqlmock.NewRows([]string{"id", "dashboardURL", "planID", "probability", "frequency"}).
-					AddRow("1", "https://example.com/dashboard/1", "1", 0.2, 5)
-				mock.ExpectQuery("^SELECT (.+) FROM service_instances WHERE id=").WithArgs("1").WillReturnRows(rows)
+			JustBeforeEach(func() {
 				req, _ = http.NewRequest("GET", "http://example.com/v2/service_instances/1", nil)
 				Router(controller).ServeHTTP(mockRecorder, req)
 			})
 
-			It("returns dashboard URL, probability and frequency", func() {
-				Expect(mockRecorder.Code).To(Equal(200))
-				Expect(mockRecorder.Body.String()).To(Equal(`{"dashboard_url":"https://example.com/dashboard/1","probability":0.2,"frequency":5}`))
+			Context("and the database does not return an error", func() {
+				BeforeEach(func() {
+					rows := sqlmock.NewRows([]string{"id", "dashboardURL", "planID", "probability", "frequency"}).
+						AddRow("1", "https://example.com/dashboard/1", "1", 0.2, 5)
+					mock.ExpectQuery("^SELECT (.+) FROM service_instances WHERE id=").WithArgs("1").WillReturnRows(rows)
+				})
+
+				It("returns dashboard URL, probability and frequency", func() {
+					Expect(mockRecorder.Code).To(Equal(200))
+					Expect(mockRecorder.Body.String()).To(Equal(`{"dashboard_url":"https://example.com/dashboard/1","probability":0.2,"frequency":5}`))
+				})
+			})
+
+			Context("when the database returns an error", func() {
+				BeforeEach(func() {
+					mock.ExpectQuery("^SELECT (.+) FROM service_instances WHERE id=").WithArgs("1").WillReturnError(fmt.Errorf("An error has occured: %s", "DB error"))
+				})
+
+				It("returns an error 500", func() {
+					Expect(mockRecorder.Code).To(Equal(500))
+				})
 			})
 		})
 
