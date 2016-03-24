@@ -105,19 +105,64 @@ var _ = Describe("Contoller", func() {
 		})
 
 		Context("When the service instance exists", func() {
-			BeforeEach(func() {
-				rows := sqlmock.NewRows([]string{"id", "dashboardURL", "planID", "probability", "frequency"}).
-					AddRow("1", "https://example.com/dashboard/1", "1", 0.2, 5)
-				mock.ExpectQuery("^SELECT (.+) FROM service_instances WHERE id=").WithArgs("1").WillReturnRows(rows)
-				mock.ExpectExec("DELETE FROM service_bindings WHERE serviceInstanceID=").WithArgs("1").WillReturnResult(sqlmock.NewResult(1, 1))
-				mock.ExpectExec("DELETE FROM service_instances WHERE id=").WithArgs("1").WillReturnResult(sqlmock.NewResult(1, 1))
+			JustBeforeEach(func() {
 				req, _ = http.NewRequest("DELETE", "http://example.com/v2/service_instances/1", nil)
 				Router(controller).ServeHTTP(mockRecorder, req)
 			})
 
-			It("Returns a 200", func() {
-				Expect(mockRecorder.Code).To(Equal(200))
-				Expect(mockRecorder.Body.String()).To(Equal("{}"))
+			Context("and the service instance can be received from the DB", func() {
+				BeforeEach(func() {
+					rows := sqlmock.NewRows([]string{"id", "dashboardURL", "planID", "probability", "frequency"}).
+						AddRow("1", "https://example.com/dashboard/1", "1", 0.2, 5)
+					mock.ExpectQuery("^SELECT (.+) FROM service_instances WHERE id=").WithArgs("1").WillReturnRows(rows)
+				})
+
+				Context("and the service bindings can be deleted", func() {
+					BeforeEach(func() {
+						mock.ExpectExec("DELETE FROM service_bindings WHERE serviceInstanceID=").WithArgs("1").WillReturnResult(sqlmock.NewResult(1, 1))
+					})
+
+					Context("and the service instance can be deleted", func() {
+						BeforeEach(func() {
+							mock.ExpectExec("DELETE FROM service_instances WHERE id=").WithArgs("1").WillReturnResult(sqlmock.NewResult(1, 1))
+						})
+
+						It("Returns a 200", func() {
+							Expect(mockRecorder.Code).To(Equal(200))
+							Expect(mockRecorder.Body.String()).To(Equal("{}"))
+						})
+					})
+
+					Context("and the service instance cannot be deleted", func() {
+						BeforeEach(func() {
+							mock.ExpectExec("DELETE FROM service_instances WHERE id=").WithArgs("1").WillReturnError(fmt.Errorf("An error has occured: %s", "DB error"))
+						})
+
+						It("Returns an error 500", func() {
+							Expect(mockRecorder.Code).To(Equal(500))
+						})
+					})
+				})
+
+				Context("and the service bindings cannot be deleted", func() {
+					BeforeEach(func() {
+						mock.ExpectExec("DELETE FROM service_bindings WHERE serviceInstanceID=").WillReturnError(fmt.Errorf("An error has occured: %s", "DB error"))
+					})
+
+					It("Returns an error 500", func() {
+						Expect(mockRecorder.Code).To(Equal(500))
+					})
+				})
+			})
+
+			Context("and the service instance cannot be receuve from the DB", func() {
+				BeforeEach(func() {
+					mock.ExpectQuery("^SELECT (.+) FROM service_instances WHERE id=").WithArgs("1").WillReturnError(fmt.Errorf("An error has occured: %s", "DB error"))
+				})
+
+				It("Returns an error 500", func() {
+					Expect(mockRecorder.Code).To(Equal(500))
+				})
 			})
 		})
 
