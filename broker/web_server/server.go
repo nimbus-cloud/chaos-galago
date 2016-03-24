@@ -16,7 +16,6 @@ import (
 )
 
 var (
-	conf               = config.GetConfig()
 	db                 *sql.DB
 	err                error
 	dbConnectionString string
@@ -52,7 +51,8 @@ func CreateServer() (*Server, error) {
 		return nil, err
 	}
 
-	controller := CreateController(db)
+	conf := config.GetConfig()
+	controller := CreateController(db, conf)
 
 	return &Server{
 		controller: controller,

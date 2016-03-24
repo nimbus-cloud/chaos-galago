@@ -7,6 +7,7 @@ import (
 	"chaos-galago/broker/Godeps/_workspace/src/github.com/gorilla/mux"
 	. "chaos-galago/broker/Godeps/_workspace/src/github.com/onsi/ginkgo"
 	. "chaos-galago/broker/Godeps/_workspace/src/github.com/onsi/gomega"
+	"chaos-galago/broker/config"
 	webs "chaos-galago/broker/web_server"
 	"database/sql"
 	"fmt"
@@ -38,12 +39,14 @@ func init() {
 var _ = Describe("Contoller", func() {
 	var (
 		db   *sql.DB
+		conf *config.Config
 		mock sqlmock.Sqlmock
 		err  error
 	)
 
 	BeforeEach(func() {
 		db, mock, err = sqlmock.New()
+		conf = &config.Config{}
 		if err != nil {
 			fmt.Printf("\nan error '%s' was not expected when opening a stub database connection\n", err)
 			os.Exit(1)
@@ -60,7 +63,7 @@ var _ = Describe("Contoller", func() {
 		})
 
 		It("Creates a controller", func() {
-			controller := webs.CreateController(db)
+			controller := webs.CreateController(db, conf)
 			Expect(controller).To(BeAssignableToTypeOf(&webs.Controller{}))
 		})
 	})
@@ -71,7 +74,7 @@ var _ = Describe("Contoller", func() {
 		)
 
 		BeforeEach(func() {
-			controller = webs.CreateController(db)
+			controller = webs.CreateController(db, conf)
 		})
 
 		Context("When the binding exists", func() {
@@ -97,7 +100,7 @@ var _ = Describe("Contoller", func() {
 		)
 
 		BeforeEach(func() {
-			controller = webs.CreateController(db)
+			controller = webs.CreateController(db, conf)
 			mockRecorder = httptest.NewRecorder()
 		})
 
@@ -140,7 +143,7 @@ var _ = Describe("Contoller", func() {
 		)
 
 		BeforeEach(func() {
-			controller = webs.CreateController(db)
+			controller = webs.CreateController(db, conf)
 			mockRecorder = httptest.NewRecorder()
 		})
 
@@ -183,7 +186,7 @@ var _ = Describe("Contoller", func() {
 		)
 
 		BeforeEach(func() {
-			controller = webs.CreateController(db)
+			controller = webs.CreateController(db, conf)
 			mockRecorder = httptest.NewRecorder()
 			response = `<html>
 	<head>
@@ -253,7 +256,7 @@ var _ = Describe("Contoller", func() {
 		)
 
 		BeforeEach(func() {
-			controller = webs.CreateController(db)
+			controller = webs.CreateController(db, conf)
 			mockRecorder = httptest.NewRecorder()
 			rows := sqlmock.NewRows([]string{"id", "dashboardURL", "planID", "probability", "frequency"}).
 				AddRow("1", "https://example.com/dashboard/1", "1", 0.2, 5)
@@ -373,7 +376,7 @@ var _ = Describe("Contoller", func() {
 		)
 
 		BeforeEach(func() {
-			controller = webs.CreateController(db)
+			controller = webs.CreateController(db, conf)
 			mockRecorder = httptest.NewRecorder()
 		})
 
@@ -440,7 +443,7 @@ var _ = Describe("Contoller", func() {
 			instance.Probability = probability
 			instance.Frequency = frequency
 			mock.ExpectExec("INSERT INTO service_instances").WithArgs(instanceID, dashboardURL, planID, probability, frequency).WillReturnResult(sqlmock.NewResult(1, 1))
-			controller = webs.CreateController(db)
+			controller = webs.CreateController(db, conf)
 			Router(controller).ServeHTTP(mockRecorder, req)
 		})
 
@@ -490,7 +493,7 @@ var _ = Describe("Contoller", func() {
 					AddRow("test", "https://example.com/dashboard/1", "1", 0.2, 5)
 				mock.ExpectQuery("^SELECT (.+) FROM service_instances WHERE id=").WithArgs("test").WillReturnRows(rows)
 				mock.ExpectExec("INSERT INTO service_bindings").WithArgs(bindingID, appID, planID, instanceID, "").WillReturnResult(sqlmock.NewResult(1, 1))
-				controller = webs.CreateController(db)
+				controller = webs.CreateController(db, conf)
 				Router(controller).ServeHTTP(mockRecorder, req)
 			})
 
@@ -504,7 +507,7 @@ var _ = Describe("Contoller", func() {
 			BeforeEach(func() {
 				rows := sqlmock.NewRows([]string{"id", "dashboardURL", "planID", "probability", "frequency"})
 				mock.ExpectQuery("^SELECT (.+) FROM service_instances WHERE id=").WithArgs("test").WillReturnRows(rows)
-				controller = webs.CreateController(db)
+				controller = webs.CreateController(db, conf)
 				Router(controller).ServeHTTP(mockRecorder, req)
 			})
 
@@ -521,13 +524,13 @@ var _ = Describe("Contoller", func() {
 			mockRecorder *httptest.ResponseRecorder
 		)
 
-		BeforeEach(func() {
-			controller = webs.CreateController(db)
-			req, _ = http.NewRequest("GET", "http://example.com/v2/catalog", nil)
-			mockRecorder = httptest.NewRecorder()
-		})
+		Context("When catalog path is set by ENV", func() {
+			BeforeEach(func() {
+				controller = webs.CreateController(db, conf)
+				req, _ = http.NewRequest("GET", "http://example.com/v2/catalog", nil)
+				mockRecorder = httptest.NewRecorder()
+			})
 
-		Context("When catalog path is set", func() {
 			AfterEach(func() {
 				os.Unsetenv("CATALOG_PATH")
 			})
@@ -569,7 +572,28 @@ var _ = Describe("Contoller", func() {
 			})
 		})
 
+		Context("When the catalog path is set by conf", func() {
+			BeforeEach(func() {
+				conf = &config.Config{CatalogPath: "fixtures/valid"}
+				controller = webs.CreateController(db, conf)
+				req, _ = http.NewRequest("GET", "http://example.com/v2/catalog", nil)
+				mockRecorder = httptest.NewRecorder()
+			})
+
+			It("Returns the catalog", func() {
+				controller.Catalog(mockRecorder, req)
+				Expect(mockRecorder.Code).To(Equal(200))
+				Expect(mockRecorder.Body.String()).To(ContainSubstring(`"id":"chaos-galago"`))
+			})
+		})
+
 		Context("When catalog path is not set", func() {
+			BeforeEach(func() {
+				controller = webs.CreateController(db, conf)
+				req, _ = http.NewRequest("GET", "http://example.com/v2/catalog", nil)
+				mockRecorder = httptest.NewRecorder()
+			})
+
 			It("Returns an error 500", func() {
 				controller.Catalog(mockRecorder, req)
 				Expect(mockRecorder.Code).To(Equal(500))

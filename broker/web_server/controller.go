@@ -2,6 +2,7 @@ package webServer
 
 import (
 	sharedModel "chaos-galago/broker/Godeps/_workspace/src/chaos-galago/shared/model"
+	"chaos-galago/broker/config"
 	model "chaos-galago/broker/model"
 	utils "chaos-galago/broker/utils"
 	"database/sql"
@@ -17,13 +18,15 @@ const (
 
 // Controller struct
 type Controller struct {
-	db *sql.DB
+	db   *sql.DB
+	conf *config.Config
 }
 
 // CreateController - returns a populated controller object
-func CreateController(db *sql.DB) *Controller {
+func CreateController(db *sql.DB, conf *config.Config) *Controller {
 	return &Controller{
-		db: db,
+		db:   db,
+		conf: conf,
 	}
 }
 
@@ -37,8 +40,8 @@ func (c *Controller) Catalog(w http.ResponseWriter, r *http.Request) {
 
 	if os.Getenv("CATALOG_PATH") != "" {
 		catalogPath = os.Getenv("CATALOG_PATH")
-	} else if conf.CatalogPath != "" {
-		catalogPath = conf.CatalogPath
+	} else if c.conf.CatalogPath != "" {
+		catalogPath = c.conf.CatalogPath
 	} else {
 		w.WriteHeader(http.StatusInternalServerError)
 	}
@@ -83,16 +86,16 @@ func (c *Controller) CreateServiceInstance(w http.ResponseWriter, r *http.Reques
 
 	if os.Getenv("PROBABILITY") != "" {
 		probability, _ = strconv.ParseFloat(os.Getenv("PROBABILITY"), 64)
-	} else if conf.DefaultProbability != 0 {
-		probability = conf.DefaultProbability
+	} else if c.conf.DefaultProbability != 0 {
+		probability = c.conf.DefaultProbability
 	} else {
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 
 	if os.Getenv("FREQUENCY") != "" {
 		frequency, _ = strconv.Atoi(os.Getenv("FREQUENCY"))
-	} else if conf.DefaultFrequency != 0 {
-		frequency = conf.DefaultFrequency
+	} else if c.conf.DefaultFrequency != 0 {
+		frequency = c.conf.DefaultFrequency
 	} else {
 		w.WriteHeader(http.StatusInternalServerError)
 	}
