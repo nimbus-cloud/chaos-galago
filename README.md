@@ -1,5 +1,6 @@
 # chaos-galago
 
+[![codecov.io](https://codecov.io/github/FidelityInternational/chaos-galago/coverage.svg?branch=master)](https://codecov.io/github/FidelityInternational/chaos-galago?branch=master)
 [![Go Report Card](https://goreportcard.com/badge/github.com/FidelityInternational/chaos-galago)](https://goreportcard.com/report/github.com/FidelityInternational/chaos-galago) [![Build Status](https://travis-ci.org/FidelityInternational/chaos-galago.svg?branch=master)](https://travis-ci.org/FidelityInternational/chaos-galago)
 
 ### Overview
