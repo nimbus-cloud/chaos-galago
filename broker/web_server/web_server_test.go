@@ -355,20 +355,52 @@ var _ = Describe("Contoller", func() {
 			controller   *webs.Controller
 			req          *http.Request
 			mockRecorder *httptest.ResponseRecorder
+			probability  = "0.4"
+			frequency    = "10"
 		)
 
 		BeforeEach(func() {
 			controller = webs.CreateController(db, conf)
 			mockRecorder = httptest.NewRecorder()
-			rows := sqlmock.NewRows([]string{"id", "dashboardURL", "planID", "probability", "frequency"}).
-				AddRow("1", "https://example.com/dashboard/1", "1", 0.2, 5)
-			mock.ExpectQuery("^SELECT (.+) FROM service_instances WHERE id=").WithArgs("1").WillReturnRows(rows)
 		})
 
 		Context("When the service instance exists", func() {
-			Context("When probability is invalid", func() {
+			JustBeforeEach(func() {
+				req, _ = http.NewRequest("POST", "http://example.com/dashboard/1", strings.NewReader(fmt.Sprintf("probability=%s&frequency=%s", probability, frequency)))
+				req.Header.Set("Content-Type", "application/x-www-form-urlencoded; param=value")
+				Router(controller).ServeHTTP(mockRecorder, req)
+			})
+
+			Context("and the service instance cannot be fetched", func() {
 				BeforeEach(func() {
-					response = `<html>
+					mock.ExpectQuery("^SELECT (.+) FROM service_instances WHERE id=").WithArgs("1").WillReturnError(fmt.Errorf("An error has occurred: %s", "DB error"))
+				})
+
+				It("returns an error 500", func() {
+					Expect(mockRecorder.Code).To(Equal(500))
+				})
+			})
+
+			Context("when the service instance does not exist in the database", func() {
+				BeforeEach(func() {
+					rows := sqlmock.NewRows([]string{"id", "dashboardURL", "planID", "probability", "frequency"})
+					mock.ExpectQuery("^SELECT (.+) FROM service_instances WHERE id=").WithArgs("1").WillReturnRows(rows)
+				})
+
+				It("returns a 410", func() {
+					Expect(mockRecorder.Code).To(Equal(410))
+				})
+			})
+
+			Context("and the service instance can be fetched", func() {
+				BeforeEach(func() {
+					rows := sqlmock.NewRows([]string{"id", "dashboardURL", "planID", "probability", "frequency"}).
+						AddRow("1", "https://example.com/dashboard/1", "1", 0.2, 5)
+					mock.ExpectQuery("^SELECT (.+) FROM service_instances WHERE id=").WithArgs("1").WillReturnRows(rows)
+				})
+				Context("When probability is invalid", func() {
+					BeforeEach(func() {
+						response = `<html>
 	<head>
 		<link rel="stylesheet" href="/css/bootstrap.min.css">
 		<link rel="stylesheet" href="/css/bootstrap-theme.min.css">
@@ -385,19 +417,22 @@ var _ = Describe("Contoller", func() {
 		</div>
 	</body>
 </html>`
-					req, _ = http.NewRequest("POST", "http://example.com/dashboard/1", strings.NewReader("probability=3&frequency=5"))
-					req.Header.Set("Content-Type", "application/x-www-form-urlencoded; param=value")
-					Router(controller).ServeHTTP(mockRecorder, req)
-				})
-				It("returns an error page", func() {
-					Expect(mockRecorder.Code).To(Equal(400))
-					Expect(mockRecorder.Body.String()).To(Equal(response))
-				})
-			})
+						probability = "3"
+					})
 
-			Context("When frequency is invalid", func() {
-				BeforeEach(func() {
-					response = `<html>
+					AfterEach(func() {
+						probability = "0.4"
+					})
+
+					It("returns an error page", func() {
+						Expect(mockRecorder.Code).To(Equal(400))
+						Expect(mockRecorder.Body.String()).To(Equal(response))
+					})
+				})
+
+				Context("When frequency is invalid", func() {
+					BeforeEach(func() {
+						response = `<html>
 	<head>
 		<link rel="stylesheet" href="/css/bootstrap.min.css">
 		<link rel="stylesheet" href="/css/bootstrap-theme.min.css">
@@ -414,20 +449,34 @@ var _ = Describe("Contoller", func() {
 		</div>
 	</body>
 </html>`
-					req, _ = http.NewRequest("POST", "http://example.com/dashboard/1", strings.NewReader("probability=0.1&frequency=0"))
-					req.Header.Set("Content-Type", "application/x-www-form-urlencoded; param=value")
-					Router(controller).ServeHTTP(mockRecorder, req)
-				})
-				It("returns an error page", func() {
-					Expect(mockRecorder.Code).To(Equal(400))
-					Expect(mockRecorder.Body.String()).To(Equal(response))
-				})
-			})
+						frequency = "0"
+					})
 
-			Context("When probability and frequency are valid", func() {
-				BeforeEach(func() {
-					mock.ExpectExec("UPDATE service_instances.*").WithArgs(0.4, 10, "1").WillReturnResult(sqlmock.NewResult(1, 1))
-					response = `<html>
+					AfterEach(func() {
+						frequency = "10"
+					})
+
+					It("returns an error page", func() {
+						Expect(mockRecorder.Code).To(Equal(400))
+						Expect(mockRecorder.Body.String()).To(Equal(response))
+					})
+				})
+
+				Context("When probability and frequency are valid", func() {
+					Context("and the service instance cannot be updated", func() {
+						BeforeEach(func() {
+							mock.ExpectExec("UPDATE service_instances.*").WithArgs(0.4, 10, "1").WillReturnError(fmt.Errorf("An error has occurred: %s", "DB error"))
+						})
+
+						It("returns an error 500", func() {
+							Expect(mockRecorder.Code).To(Equal(500))
+						})
+					})
+
+					Context("and the service instance can be updated", func() {
+						BeforeEach(func() {
+							mock.ExpectExec("UPDATE service_instances.*").WithArgs(0.4, 10, "1").WillReturnResult(sqlmock.NewResult(1, 1))
+							response = `<html>
 	<head>
 		<link rel="stylesheet" href="/css/bootstrap.min.css">
 		<link rel="stylesheet" href="/css/bootstrap-theme.min.css">
@@ -444,14 +493,13 @@ var _ = Describe("Contoller", func() {
 		</div>
 	</body>
 </html>`
-					req, _ = http.NewRequest("POST", "http://example.com/dashboard/1", strings.NewReader("probability=0.4&frequency=10"))
-					req.Header.Set("Content-Type", "application/x-www-form-urlencoded; param=value")
-					Router(controller).ServeHTTP(mockRecorder, req)
-				})
+						})
 
-				It("updates the service isntance", func() {
-					Expect(mockRecorder.Code).To(Equal(202))
-					Expect(mockRecorder.Body.String()).To(Equal(response))
+						It("updates the service instance", func() {
+							Expect(mockRecorder.Code).To(Equal(202))
+							Expect(mockRecorder.Body.String()).To(Equal(response))
+						})
+					})
 				})
 			})
 		})
@@ -460,12 +508,17 @@ var _ = Describe("Contoller", func() {
 			BeforeEach(func() {
 				rows := sqlmock.NewRows([]string{"id", "dashboardURL", "planID", "probability", "frequency"})
 				mock.ExpectQuery("^SELECT (.+) FROM service_instances WHERE id=").WithArgs("2").WillReturnRows(rows)
-				req, _ = http.NewRequest("POST", "http://example.com/v2/service_instances/2/service_bindings/2", nil)
+			})
+
+			JustBeforeEach(func() {
+				req, _ = http.NewRequest("POST", "http://example.com/dashboard/2", strings.NewReader(fmt.Sprintf("probability=0.2&frequency=5", probability, frequency)))
+				req.Header.Set("Content-Type", "application/x-www-form-urlencoded; param=value")
 				Router(controller).ServeHTTP(mockRecorder, req)
-				It("returns the form", func() {
-					Expect(mockRecorder.Code).To(Equal(400))
-					Expect(mockRecorder.Body.String()).To(Equal(""))
-				})
+			})
+
+			It("returns the form", func() {
+				Expect(mockRecorder.Code).To(Equal(410))
+				Expect(mockRecorder.Body.String()).To(Equal(""))
 			})
 		})
 	})
