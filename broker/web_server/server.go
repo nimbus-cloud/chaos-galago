@@ -26,15 +26,21 @@ type Server struct {
 	controller *Controller
 }
 
+// DBConn - database opening interface
+type DBConn func(driverName string, connectionString string) (*sql.DB, error)
+
+// ControllerCreator - controller creation function
+type ControllerCreator func(db *sql.DB, conf *config.Config) *Controller
+
 // CreateServer - creates a server
-func CreateServer() (*Server, error) {
+func CreateServer(dbConnFunc DBConn, controllerCreator ControllerCreator) (*Server, error) {
 	dbConnectionString, err = sharedUtils.GetDBConnectionDetails()
 	if err != nil {
 		fmt.Println(err)
 		return nil, err
 	}
 
-	db, err = sql.Open("mysql", dbConnectionString)
+	db, err = dbConnFunc("mysql", dbConnectionString)
 	if err != nil {
 		fmt.Println(err)
 		return nil, err
@@ -52,7 +58,7 @@ func CreateServer() (*Server, error) {
 	}
 
 	conf := config.GetConfig()
-	controller := CreateController(db, conf)
+	controller := controllerCreator(db, conf)
 
 	return &Server{
 		controller: controller,

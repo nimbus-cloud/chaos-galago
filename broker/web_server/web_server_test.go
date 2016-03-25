@@ -36,6 +36,148 @@ func init() {
 	http.Handle("/", Router(controller))
 }
 
+func mockFailedInstanceDBConn(driverName string, connectionString string) (*sql.DB, error) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		fmt.Printf("\nan error '%s' was not expected when opening a stub database connection\n", err)
+		os.Exit(1)
+	}
+	mock.ExpectExec("CREATE TABLE IF NOT EXISTS service_instances.*").WillReturnError(fmt.Errorf("An error has occured: %s", "Database Create Error"))
+	return db, err
+}
+
+func mockFailedBindingDBConn(driverName string, connectionString string) (*sql.DB, error) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		fmt.Printf("\nan error '%s' was not expected when opening a stub database connection\n", err)
+		os.Exit(1)
+	}
+	mock.ExpectExec("CREATE TABLE IF NOT EXISTS service_instances.*").WillReturnResult(sqlmock.NewResult(1, 1))
+	mock.ExpectExec("CREATE TABLE IF NOT EXISTS service_bindings.").WillReturnError(fmt.Errorf("An error has occured: %s", "Database Create Error"))
+	return db, err
+}
+
+func mockDBConn(driverName string, connectionString string) (*sql.DB, error) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		fmt.Printf("\nan error '%s' was not expected when opening a stub database connection\n", err)
+		os.Exit(1)
+	}
+	mock.ExpectExec("CREATE TABLE IF NOT EXISTS service_instances.*").WillReturnResult(sqlmock.NewResult(1, 1))
+	mock.ExpectExec("CREATE TABLE IF NOT EXISTS service_bindings.*").WillReturnResult(sqlmock.NewResult(1, 1))
+	return db, err
+}
+
+func mockErrDBConn(driverName string, connectionString string) (*sql.DB, error) {
+	db, _, err := sqlmock.New()
+	err = fmt.Errorf("An error has occured: %s", "Conn String Fetch Error")
+	return db, err
+}
+
+func mockCreateController(db *sql.DB, conf *config.Config) *webs.Controller {
+	return &webs.Controller{
+		DB:   &sql.DB{},
+		Conf: &config.Config{},
+	}
+}
+
+var _ = Describe("Server", func() {
+	Describe("#CreateServer", func() {
+		var vcapServicesJSON string
+		BeforeEach(func() {
+			vcapServicesJSON = `{
+  "user-provided": [
+   {
+    "credentials": {
+    	"username":"test_user",
+    	"password":"test_password",
+    	"host":"test_host",
+    	"port":"test_port",
+    	"database":"test_database"
+    },
+    "label": "user-provided",
+    "name": "chaos-galago-db",
+    "syslog_drain_url": "",
+    "tags": []
+   }
+  ]
+ }`
+		})
+
+		JustBeforeEach(func() {
+			os.Setenv("VCAP_SERVICES", vcapServicesJSON)
+		})
+
+		AfterEach(func() {
+			os.Unsetenv("VCAP_SERVICES")
+		})
+
+		Context("When chaos-galago-db service is set", func() {
+			Context("and fetching the connection string raises an error", func() {
+				It("returns an error", func() {
+					_, err := webs.CreateServer(mockErrDBConn, mockCreateController)
+					Expect(err).ToNot(BeNil())
+					Expect(err.Error()).To(MatchRegexp("An error has occured: Conn String Fetch Error"))
+				})
+			})
+
+			Context("and fetching the connection string does not raise an error", func() {
+				Context("and SetupInstanceDB does not raise an error", func() {
+					Context("and SetupBindingDB does not raise an error", func() {
+						It("creates a Server object", func() {
+							server, err := webs.CreateServer(mockDBConn, mockCreateController)
+							Expect(err).To(BeNil())
+							Expect(server).To(BeAssignableToTypeOf(&webs.Server{}))
+						})
+					})
+					Context("and SetupBindingDB raises an error", func() {
+						It("returns an error", func() {
+							_, err := webs.CreateServer(mockFailedBindingDBConn, mockCreateController)
+							Expect(err).ToNot(BeNil())
+							Expect(err.Error()).To(MatchRegexp("An error has occured: Database Create Error"))
+						})
+					})
+				})
+
+				Context("and SetupInstanceDB raises an error", func() {
+					It("returns an error", func() {
+						_, err := webs.CreateServer(mockFailedInstanceDBConn, mockCreateController)
+						Expect(err).ToNot(BeNil())
+						Expect(err.Error()).To(MatchRegexp("An error has occured: Database Create Error"))
+					})
+				})
+			})
+
+			Context("When chaos-galago-db service is not set", func() {
+				BeforeEach(func() {
+					vcapServicesJSON = `{
+  "user-provided": [
+   {
+    "credenti
+    	"password":"test_password",
+    	"host":"test_host",
+    	"port":"test_port",
+    	"database":"test_database"
+    },
+    "label": "user-provided",
+    "name": "chaos-galago-db",
+    "syslog_drain_url": "",
+    "tags": []
+   }
+  ]
+ }`
+				})
+
+				It("returns an error", func() {
+					_, err := webs.CreateServer(mockDBConn, mockCreateController)
+					Expect(err).ToNot(BeNil())
+					Expect(err.Error()).To(MatchRegexp("invalid"))
+				})
+			})
+		})
+	})
+})
+
 var _ = Describe("Contoller", func() {
 	var (
 		db   *sql.DB

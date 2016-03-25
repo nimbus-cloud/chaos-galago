@@ -1,12 +1,12 @@
 package main
 
 import (
-	"flag"
-	"fmt"
-
 	conf "chaos-galago/broker/config"
 	utils "chaos-galago/broker/utils"
 	webs "chaos-galago/broker/web_server"
+	"database/sql"
+	"flag"
+	"fmt"
 )
 
 // Options struct
@@ -30,10 +30,15 @@ func main() {
 		panic(fmt.Sprintf("Error loading config file [%s]...", err.Error()))
 	}
 
-	server, err := webs.CreateServer()
+	server, err := webs.CreateServer(dbConn, webs.CreateController)
 	if err != nil {
 		panic(fmt.Sprintf("Error creating server [%s]...", err.Error()))
 	}
 
 	server.Start()
+}
+
+func dbConn(driverName string, connectionString string) (*sql.DB, error) {
+	db, err := sql.Open(driverName, connectionString)
+	return db, err
 }

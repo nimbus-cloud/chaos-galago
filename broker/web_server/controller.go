@@ -18,15 +18,15 @@ const (
 
 // Controller struct
 type Controller struct {
-	db   *sql.DB
-	conf *config.Config
+	DB   *sql.DB
+	Conf *config.Config
 }
 
 // CreateController - returns a populated controller object
 func CreateController(db *sql.DB, conf *config.Config) *Controller {
 	return &Controller{
-		db:   db,
-		conf: conf,
+		DB:   db,
+		Conf: conf,
 	}
 }
 
@@ -40,8 +40,8 @@ func (c *Controller) Catalog(w http.ResponseWriter, r *http.Request) {
 
 	if os.Getenv("CATALOG_PATH") != "" {
 		catalogPath = os.Getenv("CATALOG_PATH")
-	} else if c.conf.CatalogPath != "" {
-		catalogPath = c.conf.CatalogPath
+	} else if c.Conf.CatalogPath != "" {
+		catalogPath = c.Conf.CatalogPath
 	} else {
 		w.WriteHeader(http.StatusInternalServerError)
 	}
@@ -86,16 +86,16 @@ func (c *Controller) CreateServiceInstance(w http.ResponseWriter, r *http.Reques
 
 	if os.Getenv("PROBABILITY") != "" {
 		probability, _ = strconv.ParseFloat(os.Getenv("PROBABILITY"), 64)
-	} else if c.conf.DefaultProbability != 0 {
-		probability = c.conf.DefaultProbability
+	} else if c.Conf.DefaultProbability != 0 {
+		probability = c.Conf.DefaultProbability
 	} else {
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 
 	if os.Getenv("FREQUENCY") != "" {
 		frequency, _ = strconv.Atoi(os.Getenv("FREQUENCY"))
-	} else if c.conf.DefaultFrequency != 0 {
-		frequency = c.conf.DefaultFrequency
+	} else if c.Conf.DefaultFrequency != 0 {
+		frequency = c.Conf.DefaultFrequency
 	} else {
 		w.WriteHeader(http.StatusInternalServerError)
 	}
@@ -107,7 +107,7 @@ func (c *Controller) CreateServiceInstance(w http.ResponseWriter, r *http.Reques
 	instance.Probability = probability
 	instance.Frequency = frequency
 
-	err = utils.AddServiceInstance(c.db, instance)
+	err = utils.AddServiceInstance(c.DB, instance)
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -127,7 +127,7 @@ func (c *Controller) GetServiceInstance(w http.ResponseWriter, r *http.Request) 
 	fmt.Println("Get Service Instance State....")
 
 	instanceID := utils.ExtractVarsFromRequest(r, "service_instance_guid")
-	instance, err := utils.GetServiceInstance(c.db, instanceID)
+	instance, err := utils.GetServiceInstance(c.DB, instanceID)
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -151,7 +151,7 @@ func (c *Controller) RemoveServiceInstance(w http.ResponseWriter, r *http.Reques
 	fmt.Println("Remove Service Instance...")
 
 	instanceID := utils.ExtractVarsFromRequest(r, "service_instance_guid")
-	instance, err := utils.GetServiceInstance(c.db, instanceID)
+	instance, err := utils.GetServiceInstance(c.DB, instanceID)
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -170,7 +170,7 @@ func (c *Controller) RemoveServiceInstance(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	err = utils.DeleteServiceInstance(c.db, instance)
+	err = utils.DeleteServiceInstance(c.DB, instance)
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -182,7 +182,7 @@ func (c *Controller) RemoveServiceInstance(w http.ResponseWriter, r *http.Reques
 
 // DeleteAssociatedBindings - deletes all binding associated with a service instance
 func (c *Controller) DeleteAssociatedBindings(instanceID string) error {
-	err := utils.DeleteServiceInstanceBindings(c.db, instanceID)
+	err := utils.DeleteServiceInstanceBindings(c.DB, instanceID)
 	if err != nil {
 		fmt.Println(err)
 		return err
@@ -206,7 +206,7 @@ func (c *Controller) Bind(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	instance, err := utils.GetServiceInstance(c.db, instanceID)
+	instance, err := utils.GetServiceInstance(c.DB, instanceID)
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -237,7 +237,7 @@ func (c *Controller) Bind(w http.ResponseWriter, r *http.Request) {
 	binding.ServicePlanID = instance.PlanID
 	binding.ServiceInstanceID = instance.ID
 
-	err = utils.AddServiceBinding(c.db, binding)
+	err = utils.AddServiceBinding(c.DB, binding)
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -253,7 +253,7 @@ func (c *Controller) UnBind(w http.ResponseWriter, r *http.Request) {
 
 	bindingID := utils.ExtractVarsFromRequest(r, "service_binding_guid")
 	instanceID := utils.ExtractVarsFromRequest(r, "service_instance_guid")
-	instance, err := utils.GetServiceInstance(c.db, instanceID)
+	instance, err := utils.GetServiceInstance(c.DB, instanceID)
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -264,7 +264,7 @@ func (c *Controller) UnBind(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = utils.DeleteServiceBinding(c.db, bindingID)
+	err = utils.DeleteServiceBinding(c.DB, bindingID)
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -279,7 +279,7 @@ func (c *Controller) GetDashboard(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Loading Dashboard...")
 
 	instanceID := utils.ExtractVarsFromRequest(r, "service_instance_guid")
-	instance, err := utils.GetServiceInstance(c.db, instanceID)
+	instance, err := utils.GetServiceInstance(c.DB, instanceID)
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -329,7 +329,7 @@ func (c *Controller) UpdateServiceInstance(w http.ResponseWriter, r *http.Reques
 	fmt.Println("Updating Service Instance...")
 
 	instanceID := utils.ExtractVarsFromRequest(r, "service_instance_guid")
-	instance, err := utils.GetServiceInstance(c.db, instanceID)
+	instance, err := utils.GetServiceInstance(c.DB, instanceID)
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -354,7 +354,7 @@ func (c *Controller) UpdateServiceInstance(w http.ResponseWriter, r *http.Reques
 	}
 
 	if valid {
-		err = utils.UpdateServiceInstance(c.db, instanceID, probability, frequency)
+		err = utils.UpdateServiceInstance(c.DB, instanceID, probability, frequency)
 		if err != nil {
 			fmt.Println(err)
 			w.WriteHeader(http.StatusInternalServerError)
