@@ -26,7 +26,7 @@ func Router(controller *webs.Controller) *mux.Router {
 	r.HandleFunc("/v2/service_instances/{service_instance_guid}/service_bindings/{service_binding_guid}", controller.UnBind).Methods("DELETE")
 	r.HandleFunc("/dashboard/{service_instance_guid}", controller.GetDashboard).Methods("GET")
 	r.HandleFunc("/dashboard/{service_instance_guid}", controller.UpdateServiceInstance).Methods("POST")
-	r.PathPrefix("/").Handler(http.FileServer(http.Dir("./webServer/resources/")))
+	r.PathPrefix("/").Handler(http.FileServer(http.Dir("./web_server/resources/")))
 
 	return r
 }

@@ -77,7 +77,7 @@ func (s *Server) Start() {
 	router.HandleFunc("/v2/service_instances/{service_instance_guid}/service_bindings/{service_binding_guid}", s.controller.UnBind).Methods("DELETE")
 	router.HandleFunc("/dashboard/{service_instance_guid}", s.controller.GetDashboard).Methods("GET")
 	router.HandleFunc("/dashboard/{service_instance_guid}", s.controller.UpdateServiceInstance).Methods("POST")
-	router.PathPrefix("/").Handler(http.FileServer(http.Dir("./webServer/resources/")))
+	router.PathPrefix("/").Handler(http.FileServer(http.Dir("./web_server/resources/")))
 
 	http.Handle("/", router)
 
