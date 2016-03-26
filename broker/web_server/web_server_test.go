@@ -18,16 +18,8 @@ import (
 )
 
 func Router(controller *webs.Controller) *mux.Router {
-	r := mux.NewRouter()
-	r.HandleFunc("/v2/service_instances/{service_instance_guid}", controller.CreateServiceInstance).Methods("PUT")
-	r.HandleFunc("/v2/service_instances/{service_instance_guid}", controller.GetServiceInstance).Methods("GET")
-	r.HandleFunc("/v2/service_instances/{service_instance_guid}", controller.RemoveServiceInstance).Methods("DELETE")
-	r.HandleFunc("/v2/service_instances/{service_instance_guid}/service_bindings/{service_binding_guid}", controller.Bind).Methods("PUT")
-	r.HandleFunc("/v2/service_instances/{service_instance_guid}/service_bindings/{service_binding_guid}", controller.UnBind).Methods("DELETE")
-	r.HandleFunc("/dashboard/{service_instance_guid}", controller.GetDashboard).Methods("GET")
-	r.HandleFunc("/dashboard/{service_instance_guid}", controller.UpdateServiceInstance).Methods("POST")
-	r.PathPrefix("/").Handler(http.FileServer(http.Dir("./web_server/resources/")))
-
+	server := &webs.Server{Controller: controller}
+	r := server.Start()
 	return r
 }
 

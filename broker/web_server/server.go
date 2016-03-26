@@ -3,7 +3,6 @@ package webServer
 import (
 	"fmt"
 	"net/http"
-	"os"
 
 	"chaos-galago/broker/Godeps/_workspace/src/github.com/gorilla/mux"
 
@@ -23,7 +22,7 @@ var (
 
 // Server struct
 type Server struct {
-	controller *Controller
+	Controller *Controller
 }
 
 // DBConn - database opening interface
@@ -61,28 +60,23 @@ func CreateServer(dbConnFunc DBConn, controllerCreator ControllerCreator) (*Serv
 	controller := controllerCreator(db, conf)
 
 	return &Server{
-		controller: controller,
+		Controller: controller,
 	}, nil
 }
 
 // Start - starts the web server
-func (s *Server) Start() {
+func (s *Server) Start() *mux.Router {
 	router := mux.NewRouter()
 
-	router.HandleFunc("/v2/catalog", s.controller.Catalog).Methods("GET")
-	router.HandleFunc("/v2/service_instances/{service_instance_guid}", s.controller.GetServiceInstance).Methods("GET")
-	router.HandleFunc("/v2/service_instances/{service_instance_guid}", s.controller.CreateServiceInstance).Methods("PUT")
-	router.HandleFunc("/v2/service_instances/{service_instance_guid}", s.controller.RemoveServiceInstance).Methods("DELETE")
-	router.HandleFunc("/v2/service_instances/{service_instance_guid}/service_bindings/{service_binding_guid}", s.controller.Bind).Methods("PUT")
-	router.HandleFunc("/v2/service_instances/{service_instance_guid}/service_bindings/{service_binding_guid}", s.controller.UnBind).Methods("DELETE")
-	router.HandleFunc("/dashboard/{service_instance_guid}", s.controller.GetDashboard).Methods("GET")
-	router.HandleFunc("/dashboard/{service_instance_guid}", s.controller.UpdateServiceInstance).Methods("POST")
+	router.HandleFunc("/v2/catalog", s.Controller.Catalog).Methods("GET")
+	router.HandleFunc("/v2/service_instances/{service_instance_guid}", s.Controller.GetServiceInstance).Methods("GET")
+	router.HandleFunc("/v2/service_instances/{service_instance_guid}", s.Controller.CreateServiceInstance).Methods("PUT")
+	router.HandleFunc("/v2/service_instances/{service_instance_guid}", s.Controller.RemoveServiceInstance).Methods("DELETE")
+	router.HandleFunc("/v2/service_instances/{service_instance_guid}/service_bindings/{service_binding_guid}", s.Controller.Bind).Methods("PUT")
+	router.HandleFunc("/v2/service_instances/{service_instance_guid}/service_bindings/{service_binding_guid}", s.Controller.UnBind).Methods("DELETE")
+	router.HandleFunc("/dashboard/{service_instance_guid}", s.Controller.GetDashboard).Methods("GET")
+	router.HandleFunc("/dashboard/{service_instance_guid}", s.Controller.UpdateServiceInstance).Methods("POST")
 	router.PathPrefix("/").Handler(http.FileServer(http.Dir("./web_server/resources/")))
 
-	http.Handle("/", router)
-
-	err := http.ListenAndServe(":"+os.Getenv("PORT"), nil)
-	if err != nil {
-		fmt.Println("ListenAndServe:", err)
-	}
+	return router
 }

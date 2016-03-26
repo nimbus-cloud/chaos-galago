@@ -7,6 +7,8 @@ import (
 	"database/sql"
 	"flag"
 	"fmt"
+	"net/http"
+	"os"
 )
 
 // Options struct
@@ -35,7 +37,14 @@ func main() {
 		panic(fmt.Sprintf("Error creating server [%s]...", err.Error()))
 	}
 
-	server.Start()
+	router := server.Start()
+
+	http.Handle("/", router)
+
+	err = http.ListenAndServe(":"+os.Getenv("PORT"), nil)
+	if err != nil {
+		fmt.Println("ListenAndServe:", err)
+	}
 }
 
 func dbConn(driverName string, connectionString string) (*sql.DB, error) {
