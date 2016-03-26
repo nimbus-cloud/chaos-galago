@@ -687,7 +687,7 @@ var _ = Describe("#ReadFile", func() {
 		It("returns an error", func() {
 			_, err := utils.ReadFile(fullPath, ioutil.ReadAll)
 			Expect(err).ToNot(BeNil())
-			Expect(err.Error()).To(MatchRegexp("The system cannot find the file specified"))
+			Expect(err.Error()).To(MatchRegexp("open"))
 		})
 	})
 })
