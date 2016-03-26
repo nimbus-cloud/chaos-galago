@@ -3,6 +3,7 @@ package config
 import (
 	"chaos-galago/broker/utils"
 	"encoding/json"
+	"io/ioutil"
 )
 
 // Config struct
@@ -19,7 +20,7 @@ var (
 
 // LoadConfig - loads config from file to memory
 func LoadConfig(path string) (*Config, error) {
-	bytes, err := utils.ReadFile(path)
+	bytes, err := utils.ReadFile(path, ioutil.ReadAll)
 	if err != nil {
 		return &currentConfiguration, err
 	}

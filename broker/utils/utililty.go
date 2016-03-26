@@ -16,6 +16,8 @@ import (
 	"strings"
 )
 
+type ioRead func(ioReader io.Reader) ([]byte, error)
+
 // RemoveGreenFromURI - removes "-green" from provided URI for zero downtime deployments
 func RemoveGreenFromURI(URI string) string {
 	return strings.Replace(URI, "-green", "", 1)
@@ -35,7 +37,7 @@ func GetVCAPApplicationVars(object interface{}) error {
 func ReadAndUnmarshal(object interface{}, dir string, fileName string) error {
 	path := dir + string(os.PathSeparator) + fileName
 
-	bytes, err := ReadFile(path)
+	bytes, err := ReadFile(path, ioutil.ReadAll)
 	if err != nil {
 		return err
 	}
@@ -201,14 +203,14 @@ func ExtractVarsFromRequest(r *http.Request, varName string) string {
 }
 
 // ReadFile - loads a file to a byte array
-func ReadFile(path string) (content []byte, err error) {
+func ReadFile(path string, ioRead ioRead) (content []byte, err error) {
 	file, err := os.Open(path)
 	if err != nil {
 		return
 	}
 	defer file.Close()
 
-	bytes, err := ioutil.ReadAll(file)
+	bytes, err := ioRead(file)
 	if err != nil {
 		return
 	}

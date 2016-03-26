@@ -11,6 +11,7 @@ import (
 	"chaos-galago/broker/utils"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -20,6 +21,10 @@ type stubReader struct{}
 
 func (reader stubReader) Read(p []byte) (n int, err error) {
 	return 0, fmt.Errorf("An error has occured: %s", "ioread error")
+}
+
+func mockioReader(ioReader io.Reader) ([]byte, error) {
+	return []byte{}, fmt.Errorf("An error has occured: %s", "IO Reader could not be read")
 }
 
 func Router() *mux.Router {
@@ -644,6 +649,45 @@ var _ = Describe("#GetPath", func() {
 			fullPath := utils.GetPath([]string{})
 			currentDir, _ := os.Getwd()
 			Expect(fullPath).To(Equal(currentDir))
+		})
+	})
+})
+
+var _ = Describe("#ReadFile", func() {
+	var fullPath string
+
+	Context("When the file exists", func() {
+		BeforeEach(func() {
+			fullPath = utils.GetPath([]string{"fixtures", "example_catalog.json"})
+		})
+
+		Context("and the file can be read", func() {
+			It("returns a byte array of the file contents", func() {
+				output, err := utils.ReadFile(fullPath, ioutil.ReadAll)
+				Expect(err).To(BeNil())
+				Expect(output).To(BeAssignableToTypeOf([]byte{}))
+				Expect(string(output)).To(MatchRegexp("Provides the ability to cause chaos on bound application instances"))
+			})
+		})
+
+		Context("and the file cannot be read", func() {
+			It("returns an error", func() {
+				_, err := utils.ReadFile(fullPath, mockioReader)
+				Expect(err).ToNot(BeNil())
+				Expect(err.Error()).To(Equal("An error has occured: IO Reader could not be read"))
+			})
+		})
+	})
+
+	Context("When the file does not exist", func() {
+		BeforeEach(func() {
+			fullPath = utils.GetPath([]string{"fixtures", "no_file"})
+		})
+
+		It("returns an error", func() {
+			_, err := utils.ReadFile(fullPath, ioutil.ReadAll)
+			Expect(err).ToNot(BeNil())
+			Expect(err.Error()).To(MatchRegexp("The system cannot find the file specified"))
 		})
 	})
 })
