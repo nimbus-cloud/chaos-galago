@@ -181,7 +181,7 @@ var _ = Describe("#ShouldProcess", func() {
 		BeforeEach(func() {
 			layout := "2006-01-02T15:04:05Z"
 			duration := time.Duration(-5) * time.Minute
-			timeStamp = time.Now().Add(duration).Format(layout)
+			timeStamp = time.Now().UTC().Add(duration).Format(layout)
 		})
 
 		Context("and lastProcessed is older than frequency minutes", func() {
@@ -251,7 +251,7 @@ var _ = Describe("#TimeNow", func() {
 
 	BeforeEach(func() {
 		layout := "2006-01-02T15:04:05Z"
-		timeNow = time.Now().Format(layout)
+		timeNow = time.Now().UTC().Format(layout)
 	})
 
 	It("Returns a string value of the time now", func() {

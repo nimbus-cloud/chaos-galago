@@ -49,7 +49,7 @@ func ShouldProcess(frequency int, lastProcessed string) bool {
 		return false
 	}
 	duration := time.Duration(-frequency) * time.Minute
-	if timeStamp.Before(time.Now().Add(duration)) {
+	if timeStamp.UTC().Before(time.Now().UTC().Add(duration)) {
 		return true
 	}
 	return false
@@ -83,7 +83,7 @@ OUTER:
 // TimeNow - Formatted current time
 func TimeNow() string {
 	layout := "2006-01-02T15:04:05Z"
-	return time.Now().Format(layout)
+	return time.Now().UTC().Format(layout)
 }
 
 // UpdateLastProcessed - writes the last processed time to service_bindings database
