@@ -25,7 +25,10 @@ func init() {
 	}
 	config = utils.LoadCFConfig()
 	fmt.Println("\nConfig loaded:")
-	fmt.Println(config)
+	fmt.Println("ApiAddress: ", config.ApiAddress)
+	fmt.Println("LoginAddress: ", config.LoginAddress)
+	fmt.Println("Username: ", config.Username)
+	fmt.Println("SkipSslValidation: ", config.SkipSslValidation)
 }
 
 func freakOut(err error) bool {
