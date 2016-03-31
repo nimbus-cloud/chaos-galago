@@ -5,7 +5,7 @@ go:
   - tip
   - 1.5
 
-go_import_path: chaos-galago
+go_import_path: github.com/FidelityInternational/chaos-galago
 
 before_install:
   - go get github.com/pierrre/gotestcover
