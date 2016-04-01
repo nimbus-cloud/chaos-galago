@@ -31,7 +31,7 @@ func init() {
 	fmt.Println("SkipSslValidation: ", config.SkipSslValidation)
 }
 
-func freakOut(err error) bool {
+func logError(err error) bool {
 	if err != nil {
 		fmt.Println("An error has occured")
 		fmt.Println(err.Error())
@@ -53,7 +53,7 @@ func main() {
 func processServices(cfClient *cfclient.Client) {
 	db, err := sql.Open("mysql", dbConnectionString)
 	defer db.Close()
-	if freakOut(err) {
+	if logError(err) {
 		return
 	}
 
@@ -63,7 +63,7 @@ func processServices(cfClient *cfclient.Client) {
 		if utils.ShouldProcess(service.Frequency, service.LastProcessed) {
 			fmt.Printf("\nProcessing chaos for %s", service.AppID)
 			err = utils.UpdateLastProcessed(db, service.AppID, utils.TimeNow())
-			if freakOut(err) {
+			if logError(err) {
 				continue
 			}
 			if utils.ShouldRun(service.Probability) {
@@ -75,14 +75,14 @@ func processServices(cfClient *cfclient.Client) {
 					fmt.Printf("\nAbout to kill app instance: %s at index: %s", service.AppID, chaosInstance)
 					cfClient.KillAppInstance(service.AppID, chaosInstance)
 					err = utils.UpdateLastProcessed(db, service.AppID, utils.TimeNow())
-					freakOut(err)
+					logError(err)
 				} else {
 					fmt.Printf("\nApp %s is unhealthy, skipping\n", service.AppID)
 				}
 			} else {
 				fmt.Printf("\nNot running chaos for %s", service.AppID)
 				err = utils.UpdateLastProcessed(db, service.AppID, utils.TimeNow())
-				freakOut(err)
+				logError(err)
 			}
 		} else {
 			fmt.Printf("\nSkipping processing chaos for %s", service.AppID)
