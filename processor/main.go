@@ -53,13 +53,13 @@ func main() {
 
 func processServices(cfClient *cfclient.Client) {
 	db, err := sql.Open("mysql", dbConnectionString)
+	defer db.Close()
 	if freakOut(err) {
-		db.Close()
 		return
 	}
+
 	services := utils.GetBoundApps(db)
 	if len(services) == 0 {
-		db.Close()
 		return
 	}
 
@@ -98,5 +98,4 @@ func processServices(cfClient *cfclient.Client) {
 			continue
 		}
 	}
-	db.Close()
 }
