@@ -45,7 +45,7 @@ func main() {
 	ticker := time.NewTicker(1 * time.Minute)
 
 	processServices(cfClient)
-	for _ = range ticker.C {
+	for range ticker.C {
 		processServices(cfClient)
 	}
 }
