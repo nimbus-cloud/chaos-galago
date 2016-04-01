@@ -47,11 +47,10 @@ Message:
 
 ### Deployment
 
-Clone this project to $GOPATH/src.
+Clone this project.
 
 ```
-cd $GOPATH/src
-git clone https://github.com/FidelityInternational/chaos-galago.git
+go get -t -u -f github.com/FidelityInternational/chaos-galago/...
 ```
 
 A deploy scipt is included in order to make deploying chaos-galago as simple as possible.
