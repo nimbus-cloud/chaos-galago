@@ -59,9 +59,6 @@ func processServices(cfClient *cfclient.Client) {
 	}
 
 	services := utils.GetBoundApps(db)
-	if len(services) == 0 {
-		return
-	}
 
 	for _, service := range services {
 		if utils.ShouldProcess(service.Frequency, service.LastProcessed) {
