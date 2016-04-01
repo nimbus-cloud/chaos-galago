@@ -35,7 +35,6 @@ func freakOut(err error) bool {
 	if err != nil {
 		fmt.Println("An error has occured")
 		fmt.Println(err.Error())
-		time.Sleep(60 * time.Second)
 		return true
 	}
 	return false
@@ -43,19 +42,21 @@ func freakOut(err error) bool {
 
 func main() {
 	cfClient := cfclient.NewClient(config)
-OUTER:
-	for {
+
+	ticker := time.NewTicker(1 * time.Minute)
+
+	for _ = range ticker.C {
 		db, err := sql.Open("mysql", dbConnectionString)
 		if freakOut(err) {
 			db.Close()
-			continue OUTER
+			continue
 		}
 		services := utils.GetBoundApps(db)
 		if len(services) == 0 {
 			db.Close()
-			time.Sleep(60 * time.Second)
-			continue OUTER
+			continue
 		}
+
 	SERVICES:
 		for _, service := range services {
 			if utils.ShouldProcess(service.Frequency, service.LastProcessed) {
@@ -93,6 +94,5 @@ OUTER:
 			}
 		}
 		db.Close()
-		time.Sleep(60 * time.Second)
 	}
 }
