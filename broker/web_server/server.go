@@ -1,17 +1,15 @@
 package webServer
 
 import (
-	"fmt"
-	"net/http"
-
-	"github.com/FidelityInternational/chaos-galago/broker/Godeps/_workspace/src/github.com/gorilla/mux"
-
-	"github.com/FidelityInternational/chaos-galago/broker/Godeps/_workspace/src/chaos-galago/shared/utils"
-	// mysql driver
 	"database/sql"
-	_ "github.com/FidelityInternational/chaos-galago/broker/Godeps/_workspace/src/github.com/go-sql-driver/mysql"
+	"fmt"
+	"github.com/FidelityInternational/chaos-galago/broker/Godeps/_workspace/src/chaos-galago/shared/utils"
+	"github.com/FidelityInternational/chaos-galago/broker/Godeps/_workspace/src/github.com/gorilla/mux"
 	"github.com/FidelityInternational/chaos-galago/broker/config"
 	"github.com/FidelityInternational/chaos-galago/broker/utils"
+	"net/http"
+	// sql driver
+	_ "github.com/FidelityInternational/chaos-galago/broker/Godeps/_workspace/src/github.com/go-sql-driver/mysql"
 )
 
 var (

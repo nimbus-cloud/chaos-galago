@@ -1,19 +1,19 @@
 package utils
 
 import (
-	"github.com/FidelityInternational/chaos-galago/broker/Godeps/_workspace/src/chaos-galago/shared/model"
-	// sql driver
 	"database/sql"
 	"encoding/json"
 	"errors"
 	"fmt"
-	_ "github.com/FidelityInternational/chaos-galago/broker/Godeps/_workspace/src/github.com/go-sql-driver/mysql"
+	"github.com/FidelityInternational/chaos-galago/broker/Godeps/_workspace/src/chaos-galago/shared/model"
 	"github.com/FidelityInternational/chaos-galago/broker/Godeps/_workspace/src/github.com/gorilla/mux"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"strings"
+	// sql driver
+	_ "github.com/FidelityInternational/chaos-galago/broker/Godeps/_workspace/src/github.com/go-sql-driver/mysql"
 )
 
 type ioRead func(ioReader io.Reader) ([]byte, error)
