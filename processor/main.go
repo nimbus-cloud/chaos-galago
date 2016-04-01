@@ -45,54 +45,59 @@ func main() {
 
 	ticker := time.NewTicker(1 * time.Minute)
 
+	processServices(cfClient)
 	for _ = range ticker.C {
-		db, err := sql.Open("mysql", dbConnectionString)
-		if freakOut(err) {
-			db.Close()
-			continue
-		}
-		services := utils.GetBoundApps(db)
-		if len(services) == 0 {
-			db.Close()
-			continue
-		}
+		processServices(cfClient)
+	}
+}
 
-	SERVICES:
-		for _, service := range services {
-			if utils.ShouldProcess(service.Frequency, service.LastProcessed) {
-				fmt.Printf("\nProcessing chaos for %s", service.AppID)
-				err = utils.UpdateLastProcessed(db, service.AppID, utils.TimeNow())
-				if freakOut(err) {
-					continue SERVICES
-				}
-				if utils.ShouldRun(service.Probability) {
-					fmt.Printf("\nRunning chaos for %s", service.AppID)
-					appInstances := cfClient.GetAppInstances(service.AppID)
-					if utils.IsAppHealthy(appInstances) {
-						fmt.Printf("\nApp %s is Healthy\n", service.AppID)
-						chaosInstance := strconv.Itoa(utils.PickAppInstance(appInstances))
-						fmt.Printf("\nAbout to kill app instance: %s at index: %s", service.AppID, chaosInstance)
-						cfClient.KillAppInstance(service.AppID, chaosInstance)
-						err = utils.UpdateLastProcessed(db, service.AppID, utils.TimeNow())
-						if freakOut(err) {
-							continue SERVICES
-						}
-					} else {
-						fmt.Printf("\nApp %s is unhealthy, skipping\n", service.AppID)
-						continue SERVICES
-					}
-				} else {
-					fmt.Printf("\nNot running chaos for %s", service.AppID)
+func processServices(cfClient *cfclient.Client) {
+	db, err := sql.Open("mysql", dbConnectionString)
+	if freakOut(err) {
+		db.Close()
+		return
+	}
+	services := utils.GetBoundApps(db)
+	if len(services) == 0 {
+		db.Close()
+		return
+	}
+
+SERVICES:
+	for _, service := range services {
+		if utils.ShouldProcess(service.Frequency, service.LastProcessed) {
+			fmt.Printf("\nProcessing chaos for %s", service.AppID)
+			err = utils.UpdateLastProcessed(db, service.AppID, utils.TimeNow())
+			if freakOut(err) {
+				continue SERVICES
+			}
+			if utils.ShouldRun(service.Probability) {
+				fmt.Printf("\nRunning chaos for %s", service.AppID)
+				appInstances := cfClient.GetAppInstances(service.AppID)
+				if utils.IsAppHealthy(appInstances) {
+					fmt.Printf("\nApp %s is Healthy\n", service.AppID)
+					chaosInstance := strconv.Itoa(utils.PickAppInstance(appInstances))
+					fmt.Printf("\nAbout to kill app instance: %s at index: %s", service.AppID, chaosInstance)
+					cfClient.KillAppInstance(service.AppID, chaosInstance)
 					err = utils.UpdateLastProcessed(db, service.AppID, utils.TimeNow())
 					if freakOut(err) {
 						continue SERVICES
 					}
+				} else {
+					fmt.Printf("\nApp %s is unhealthy, skipping\n", service.AppID)
+					continue SERVICES
 				}
 			} else {
-				fmt.Printf("\nSkipping processing chaos for %s", service.AppID)
-				continue SERVICES
+				fmt.Printf("\nNot running chaos for %s", service.AppID)
+				err = utils.UpdateLastProcessed(db, service.AppID, utils.TimeNow())
+				if freakOut(err) {
+					continue SERVICES
+				}
 			}
+		} else {
+			fmt.Printf("\nSkipping processing chaos for %s", service.AppID)
+			continue SERVICES
 		}
-		db.Close()
 	}
+	db.Close()
 }
