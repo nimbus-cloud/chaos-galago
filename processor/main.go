@@ -24,7 +24,7 @@ func init() {
 		os.Exit(1)
 	}
 	config = utils.LoadCFConfig()
-	fmt.Println("\nConfig loaded:")
+	fmt.Println("Config loaded:")
 	fmt.Println("ApiAddress: ", config.ApiAddress)
 	fmt.Println("LoginAddress: ", config.LoginAddress)
 	fmt.Println("Username: ", config.Username)
@@ -61,31 +61,31 @@ func processServices(cfClient *cfclient.Client) {
 
 	for _, service := range services {
 		if utils.ShouldProcess(service.Frequency, service.LastProcessed) {
-			fmt.Printf("\nProcessing chaos for %s", service.AppID)
+			fmt.Printf("Processing chaos for %s\n", service.AppID)
 			err = utils.UpdateLastProcessed(db, service.AppID, utils.TimeNow())
 			if logError(err) {
 				continue
 			}
 			if utils.ShouldRun(service.Probability) {
-				fmt.Printf("\nRunning chaos for %s", service.AppID)
+				fmt.Printf("Running chaos for %s\n", service.AppID)
 				appInstances := cfClient.GetAppInstances(service.AppID)
 				if utils.IsAppHealthy(appInstances) {
-					fmt.Printf("\nApp %s is Healthy\n", service.AppID)
+					fmt.Printf("App %s is Healthy\n", service.AppID)
 					chaosInstance := strconv.Itoa(utils.PickAppInstance(appInstances))
-					fmt.Printf("\nAbout to kill app instance: %s at index: %s", service.AppID, chaosInstance)
+					fmt.Printf("About to kill app instance: %s at index: %s\n", service.AppID, chaosInstance)
 					cfClient.KillAppInstance(service.AppID, chaosInstance)
 					err = utils.UpdateLastProcessed(db, service.AppID, utils.TimeNow())
 					logError(err)
 				} else {
-					fmt.Printf("\nApp %s is unhealthy, skipping\n", service.AppID)
+					fmt.Printf("App %s is unhealthy, skipping\n", service.AppID)
 				}
 			} else {
-				fmt.Printf("\nNot running chaos for %s", service.AppID)
+				fmt.Printf("Not running chaos for %s\n", service.AppID)
 				err = utils.UpdateLastProcessed(db, service.AppID, utils.TimeNow())
 				logError(err)
 			}
 		} else {
-			fmt.Printf("\nSkipping processing chaos for %s", service.AppID)
+			fmt.Printf("Skipping processing chaos for %s\n", service.AppID)
 		}
 	}
 }
