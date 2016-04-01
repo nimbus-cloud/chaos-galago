@@ -42,7 +42,6 @@ func freakOut(err error) bool {
 
 func main() {
 	cfClient := cfclient.NewClient(config)
-
 	ticker := time.NewTicker(1 * time.Minute)
 
 	processServices(cfClient)
@@ -76,23 +75,17 @@ func processServices(cfClient *cfclient.Client) {
 					fmt.Printf("\nAbout to kill app instance: %s at index: %s", service.AppID, chaosInstance)
 					cfClient.KillAppInstance(service.AppID, chaosInstance)
 					err = utils.UpdateLastProcessed(db, service.AppID, utils.TimeNow())
-					if freakOut(err) {
-						continue
-					}
+					freakOut(err)
 				} else {
 					fmt.Printf("\nApp %s is unhealthy, skipping\n", service.AppID)
-					continue
 				}
 			} else {
 				fmt.Printf("\nNot running chaos for %s", service.AppID)
 				err = utils.UpdateLastProcessed(db, service.AppID, utils.TimeNow())
-				if freakOut(err) {
-					continue
-				}
+				freakOut(err)
 			}
 		} else {
 			fmt.Printf("\nSkipping processing chaos for %s", service.AppID)
-			continue
 		}
 	}
 }
