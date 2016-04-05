@@ -42,6 +42,7 @@ func (c *Controller) Catalog(w http.ResponseWriter, r *http.Request) {
 	catalogPath, err := GetCatalogPath(c)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
 	err = utils.ReadAndUnmarshal(&catalog, catalogPath, catalogFileName)
 	if err != nil {
@@ -98,6 +99,7 @@ func (c *Controller) CreateServiceInstance(w http.ResponseWriter, r *http.Reques
 		probability = c.Conf.DefaultProbability
 	} else {
 		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
 
 	if os.Getenv("FREQUENCY") != "" {
@@ -106,6 +108,7 @@ func (c *Controller) CreateServiceInstance(w http.ResponseWriter, r *http.Reques
 		frequency = c.Conf.DefaultFrequency
 	} else {
 		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
 
 	instance.DashboardURL = fmt.Sprintf("https://%s/dashboard/%s", applicationURI, instanceID)
