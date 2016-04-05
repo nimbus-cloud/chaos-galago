@@ -2,6 +2,7 @@ package webServer
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	sharedModel "github.com/FidelityInternational/chaos-galago/broker/Godeps/_workspace/src/chaos-galago/shared/model"
 	"github.com/FidelityInternational/chaos-galago/broker/config"
@@ -38,14 +39,11 @@ func (c *Controller) Catalog(w http.ResponseWriter, r *http.Request) {
 	var catalogPath string
 	catalogFileName := "catalog.json"
 
-	if os.Getenv("CATALOG_PATH") != "" {
-		catalogPath = os.Getenv("CATALOG_PATH")
-	} else if c.Conf.CatalogPath != "" {
-		catalogPath = c.Conf.CatalogPath
-	} else {
+	catalogPath, err := GetCatalogPath(c)
+	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 	}
-	err := utils.ReadAndUnmarshal(&catalog, catalogPath, catalogFileName)
+	err = utils.ReadAndUnmarshal(&catalog, catalogPath, catalogFileName)
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -53,6 +51,16 @@ func (c *Controller) Catalog(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utils.WriteResponse(w, http.StatusOK, catalog)
+}
+
+// GetCatalogPath - returns the catalog path either from evnironment variable or Conf, returns an error if none set
+func GetCatalogPath(c *Controller) (string, error) {
+	if os.Getenv("CATALOG_PATH") != "" {
+		return os.Getenv("CATALOG_PATH"), nil
+	} else if c.Conf.CatalogPath != "" {
+		return c.Conf.CatalogPath, nil
+	}
+	return "", errors.New("No Catalog Path could be found")
 }
 
 // CreateServiceInstance - creates a service instance

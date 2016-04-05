@@ -981,6 +981,75 @@ var _ = Describe("Contoller", func() {
 		})
 	})
 
+	Describe("#GetCatalogPath", func() {
+		var controller *webs.Controller
+
+		JustBeforeEach(func() {
+			controller = webs.CreateController(db, conf)
+		})
+
+		Context("When the CATALOG_PATH env var is set", func() {
+			BeforeEach(func() {
+				os.Setenv("CATALOG_PATH", "env/var/path")
+			})
+
+			AfterEach(func() {
+				os.Unsetenv("CATALOG_PATH")
+			})
+
+			Context("and the CatalogPath conf property is set", func() {
+				BeforeEach(func() {
+					conf = &config.Config{CatalogPath: "conf/path"}
+				})
+
+				AfterEach(func() {
+					conf = &config.Config{}
+				})
+
+				It("returns the CATALOG_PATH env var string and no error", func() {
+					catalogPath, err := webs.GetCatalogPath(controller)
+					Expect(err).To(BeNil())
+					Expect(catalogPath).To(Equal("env/var/path"))
+				})
+			})
+
+			Context("and the CatalogPath conf property is not set", func() {
+				It("returns the CATALOG_PATH env var string and no error", func() {
+					catalogPath, err := webs.GetCatalogPath(controller)
+					Expect(err).To(BeNil())
+					Expect(catalogPath).To(Equal("env/var/path"))
+				})
+			})
+		})
+
+		Context("When the CATALOG_PATH env var is not set", func() {
+			Context("and the CatalogPath conf property is set", func() {
+				BeforeEach(func() {
+					conf = &config.Config{CatalogPath: "conf/path"}
+				})
+
+				AfterEach(func() {
+					conf = &config.Config{}
+				})
+
+				It("returns the CatalogPath conf string and no error", func() {
+					catalogPath, err := webs.GetCatalogPath(controller)
+					Expect(err).To(BeNil())
+					Expect(catalogPath).To(Equal("conf/path"))
+				})
+			})
+
+			Context("and the CatalogPath conf property is not set", func() {
+				It("returns an error", func() {
+					catalogPath, err := webs.GetCatalogPath(controller)
+					Expect(err).ToNot(BeNil())
+					Expect(err.Error()).To(Equal("No Catalog Path could be found"))
+					Expect(catalogPath).To(Equal(""))
+				})
+			})
+		})
+	})
+
 	Describe("#Catalog", func() {
 		var (
 			controller   *webs.Controller
