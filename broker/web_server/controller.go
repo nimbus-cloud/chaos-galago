@@ -56,11 +56,18 @@ func (c *Controller) Catalog(w http.ResponseWriter, r *http.Request) {
 
 // GetConfigVariable - returns the a string value from variable or conf, returns an error if none set
 func GetConfigVariable(c *Controller, varName string, confName string) (string, error) {
+	var confValue string
 	varValue := os.Getenv(varName)
-	confValue := reflect.ValueOf(c.Conf).Elem().FieldByName(confName).String()
+	confProperty := reflect.ValueOf(c.Conf).Elem().FieldByName(confName)
+	switch confProperty.Kind() {
+	case reflect.String:
+		confValue = confProperty.String()
+	case reflect.Float64:
+		confValue = strconv.FormatFloat(confProperty.Float(), 'E', -1, 64)
+	}
 	if varValue != "" {
 		return varValue, nil
-	} else if confValue != "" {
+	} else if confValue != "" && confValue != "0E+00" {
 		return confValue, nil
 	}
 	return "", fmt.Errorf("No %s could be found", confName)
@@ -71,7 +78,6 @@ func (c *Controller) CreateServiceInstance(w http.ResponseWriter, r *http.Reques
 	var (
 		instance        sharedModel.ServiceInstance
 		vcapApplication model.VCAPApplication
-		probability     float64
 		frequency       int
 	)
 	fmt.Println("Create Service Instance...")
@@ -95,14 +101,13 @@ func (c *Controller) CreateServiceInstance(w http.ResponseWriter, r *http.Reques
 
 	instanceID := utils.ExtractVarsFromRequest(r, "service_instance_guid")
 
-	if os.Getenv("PROBABILITY") != "" {
-		probability, _ = strconv.ParseFloat(os.Getenv("PROBABILITY"), 64)
-	} else if c.Conf.DefaultProbability != 0 {
-		probability = c.Conf.DefaultProbability
-	} else {
+	probabilityString, err := GetConfigVariable(c, "PROBABILITY", "DefaultProbability")
+	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+
+	probability, _ := strconv.ParseFloat(probabilityString, 64)
 
 	if os.Getenv("FREQUENCY") != "" {
 		frequency, _ = strconv.Atoi(os.Getenv("FREQUENCY"))

@@ -14,6 +14,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"strconv"
 	"strings"
 )
 
@@ -1005,15 +1006,17 @@ var _ = Describe("Contoller", func() {
 		Context("When the env var is set", func() {
 			BeforeEach(func() {
 				os.Setenv("CATALOG_PATH", "env/var/path")
+				os.Setenv("PROBABILITY", "0.2")
 			})
 
 			AfterEach(func() {
 				os.Unsetenv("CATALOG_PATH")
+				os.Unsetenv("PROBABILITY")
 			})
 
 			Context("and the conf property is set", func() {
 				BeforeEach(func() {
-					conf = &config.Config{CatalogPath: "conf/path"}
+					conf = &config.Config{CatalogPath: "conf/path", DefaultProbability: 0.4}
 				})
 
 				AfterEach(func() {
@@ -1024,6 +1027,10 @@ var _ = Describe("Contoller", func() {
 					catalogPath, err := webs.GetConfigVariable(controller, "CATALOG_PATH", "CatalogPath")
 					Expect(err).To(BeNil())
 					Expect(catalogPath).To(Equal("env/var/path"))
+					probabilityString, err := webs.GetConfigVariable(controller, "PROBABILITY", "DefaultProbability")
+					Expect(err).To(BeNil())
+					probability, _ := strconv.ParseFloat(probabilityString, 64)
+					Expect(probability).To(Equal(0.2))
 				})
 			})
 
@@ -1032,6 +1039,10 @@ var _ = Describe("Contoller", func() {
 					catalogPath, err := webs.GetConfigVariable(controller, "CATALOG_PATH", "CatalogPath")
 					Expect(err).To(BeNil())
 					Expect(catalogPath).To(Equal("env/var/path"))
+					probabilityString, err := webs.GetConfigVariable(controller, "PROBABILITY", "DefaultProbability")
+					Expect(err).To(BeNil())
+					probability, _ := strconv.ParseFloat(probabilityString, 64)
+					Expect(probability).To(Equal(0.2))
 				})
 			})
 		})
@@ -1039,7 +1050,7 @@ var _ = Describe("Contoller", func() {
 		Context("When the env var is not set", func() {
 			Context("and the conf property is set", func() {
 				BeforeEach(func() {
-					conf = &config.Config{CatalogPath: "conf/path"}
+					conf = &config.Config{CatalogPath: "conf/path", DefaultProbability: 0.4}
 				})
 
 				AfterEach(func() {
@@ -1050,6 +1061,10 @@ var _ = Describe("Contoller", func() {
 					catalogPath, err := webs.GetConfigVariable(controller, "CATALOG_PATH", "CatalogPath")
 					Expect(err).To(BeNil())
 					Expect(catalogPath).To(Equal("conf/path"))
+					probabilityString, err := webs.GetConfigVariable(controller, "PROBABILITY", "DefaultProbability")
+					Expect(err).To(BeNil())
+					probability, _ := strconv.ParseFloat(probabilityString, 64)
+					Expect(probability).To(Equal(0.4))
 				})
 			})
 
@@ -1059,6 +1074,11 @@ var _ = Describe("Contoller", func() {
 					Expect(err).ToNot(BeNil())
 					Expect(err.Error()).To(Equal("No CatalogPath could be found"))
 					Expect(catalogPath).To(Equal(""))
+					probability, err := webs.GetConfigVariable(controller, "PROBABILITY", "DefaultProbability")
+					fmt.Println(probability)
+					Expect(err).ToNot(BeNil())
+					Expect(err.Error()).To(Equal("No DefaultProbability could be found"))
+					Expect(probability).To(Equal(""))
 				})
 			})
 		})
