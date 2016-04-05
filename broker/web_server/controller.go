@@ -2,7 +2,6 @@ package webServer
 
 import (
 	"database/sql"
-	"errors"
 	"fmt"
 	sharedModel "github.com/FidelityInternational/chaos-galago/broker/Godeps/_workspace/src/chaos-galago/shared/model"
 	"github.com/FidelityInternational/chaos-galago/broker/config"
@@ -10,6 +9,7 @@ import (
 	utils "github.com/FidelityInternational/chaos-galago/broker/utils"
 	"net/http"
 	"os"
+	"reflect"
 	"strconv"
 )
 
@@ -39,7 +39,7 @@ func (c *Controller) Catalog(w http.ResponseWriter, r *http.Request) {
 	var catalogPath string
 	catalogFileName := "catalog.json"
 
-	catalogPath, err := GetCatalogPath(c)
+	catalogPath, err := GetConfigVariable(c, "CATALOG_PATH", "CatalogPath")
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -54,14 +54,16 @@ func (c *Controller) Catalog(w http.ResponseWriter, r *http.Request) {
 	utils.WriteResponse(w, http.StatusOK, catalog)
 }
 
-// GetCatalogPath - returns the catalog path either from evnironment variable or Conf, returns an error if none set
-func GetCatalogPath(c *Controller) (string, error) {
-	if os.Getenv("CATALOG_PATH") != "" {
-		return os.Getenv("CATALOG_PATH"), nil
-	} else if c.Conf.CatalogPath != "" {
-		return c.Conf.CatalogPath, nil
+// GetConfigVariable - returns the a string value from variable or conf, returns an error if none set
+func GetConfigVariable(c *Controller, varName string, confName string) (string, error) {
+	varValue := os.Getenv(varName)
+	confValue := reflect.ValueOf(c.Conf).Elem().FieldByName(confName).String()
+	if varValue != "" {
+		return varValue, nil
+	} else if confValue != "" {
+		return confValue, nil
 	}
-	return "", errors.New("No Catalog Path could be found")
+	return "", fmt.Errorf("No %s could be found", confName)
 }
 
 // CreateServiceInstance - creates a service instance
