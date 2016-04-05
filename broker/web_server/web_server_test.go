@@ -1007,16 +1007,18 @@ var _ = Describe("Contoller", func() {
 			BeforeEach(func() {
 				os.Setenv("CATALOG_PATH", "env/var/path")
 				os.Setenv("PROBABILITY", "0.2")
+				os.Setenv("FREQUENCY", "5")
 			})
 
 			AfterEach(func() {
 				os.Unsetenv("CATALOG_PATH")
 				os.Unsetenv("PROBABILITY")
+				os.Unsetenv("FREQUENCY")
 			})
 
 			Context("and the conf property is set", func() {
 				BeforeEach(func() {
-					conf = &config.Config{CatalogPath: "conf/path", DefaultProbability: 0.4}
+					conf = &config.Config{CatalogPath: "conf/path", DefaultProbability: 0.4, DefaultFrequency: 10}
 				})
 
 				AfterEach(func() {
@@ -1031,6 +1033,10 @@ var _ = Describe("Contoller", func() {
 					Expect(err).To(BeNil())
 					probability, _ := strconv.ParseFloat(probabilityString, 64)
 					Expect(probability).To(Equal(0.2))
+					frequencyString, err := webs.GetConfigVariable(controller, "FREQUENCY", "DefaultFrequency")
+					Expect(err).To(BeNil())
+					frequency, _ := strconv.Atoi(frequencyString)
+					Expect(frequency).To(Equal(5))
 				})
 			})
 
@@ -1043,6 +1049,10 @@ var _ = Describe("Contoller", func() {
 					Expect(err).To(BeNil())
 					probability, _ := strconv.ParseFloat(probabilityString, 64)
 					Expect(probability).To(Equal(0.2))
+					frequencyString, err := webs.GetConfigVariable(controller, "FREQUENCY", "DefaultFrequency")
+					Expect(err).To(BeNil())
+					frequency, _ := strconv.Atoi(frequencyString)
+					Expect(frequency).To(Equal(5))
 				})
 			})
 		})
@@ -1050,7 +1060,7 @@ var _ = Describe("Contoller", func() {
 		Context("When the env var is not set", func() {
 			Context("and the conf property is set", func() {
 				BeforeEach(func() {
-					conf = &config.Config{CatalogPath: "conf/path", DefaultProbability: 0.4}
+					conf = &config.Config{CatalogPath: "conf/path", DefaultProbability: 0.4, DefaultFrequency: 10}
 				})
 
 				AfterEach(func() {
@@ -1065,6 +1075,10 @@ var _ = Describe("Contoller", func() {
 					Expect(err).To(BeNil())
 					probability, _ := strconv.ParseFloat(probabilityString, 64)
 					Expect(probability).To(Equal(0.4))
+					frequencyString, err := webs.GetConfigVariable(controller, "FREQUENCY", "DefaultFrequency")
+					Expect(err).To(BeNil())
+					frequency, _ := strconv.Atoi(frequencyString)
+					Expect(frequency).To(Equal(10))
 				})
 			})
 
@@ -1075,10 +1089,13 @@ var _ = Describe("Contoller", func() {
 					Expect(err.Error()).To(Equal("No CatalogPath could be found"))
 					Expect(catalogPath).To(Equal(""))
 					probability, err := webs.GetConfigVariable(controller, "PROBABILITY", "DefaultProbability")
-					fmt.Println(probability)
 					Expect(err).ToNot(BeNil())
 					Expect(err.Error()).To(Equal("No DefaultProbability could be found"))
 					Expect(probability).To(Equal(""))
+					frequency, err := webs.GetConfigVariable(controller, "FREQUENCY", "DefaultFrequency")
+					Expect(err).ToNot(BeNil())
+					Expect(err.Error()).To(Equal("No DefaultFrequency could be found"))
+					Expect(frequency).To(Equal(""))
 				})
 			})
 		})

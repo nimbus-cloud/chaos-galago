@@ -64,10 +64,12 @@ func GetConfigVariable(c *Controller, varName string, confName string) (string, 
 		confValue = confProperty.String()
 	case reflect.Float64:
 		confValue = strconv.FormatFloat(confProperty.Float(), 'E', -1, 64)
+	case reflect.Int:
+		confValue = strconv.FormatInt(confProperty.Int(), 10)
 	}
 	if varValue != "" {
 		return varValue, nil
-	} else if confValue != "" && confValue != "0E+00" {
+	} else if confValue != "" && confValue != "0E+00" && confValue != "0" {
 		return confValue, nil
 	}
 	return "", fmt.Errorf("No %s could be found", confName)
@@ -78,7 +80,6 @@ func (c *Controller) CreateServiceInstance(w http.ResponseWriter, r *http.Reques
 	var (
 		instance        sharedModel.ServiceInstance
 		vcapApplication model.VCAPApplication
-		frequency       int
 	)
 	fmt.Println("Create Service Instance...")
 
@@ -109,14 +110,13 @@ func (c *Controller) CreateServiceInstance(w http.ResponseWriter, r *http.Reques
 
 	probability, _ := strconv.ParseFloat(probabilityString, 64)
 
-	if os.Getenv("FREQUENCY") != "" {
-		frequency, _ = strconv.Atoi(os.Getenv("FREQUENCY"))
-	} else if c.Conf.DefaultFrequency != 0 {
-		frequency = c.Conf.DefaultFrequency
-	} else {
+	frequencyString, err := GetConfigVariable(c, "FREQUENCY", "DefaultFrequency")
+	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+
+	frequency, _ := strconv.Atoi(frequencyString)
 
 	instance.DashboardURL = fmt.Sprintf("https://%s/dashboard/%s", applicationURI, instanceID)
 	instance.ID = instanceID
