@@ -715,27 +715,25 @@ var _ = Describe("Contoller", func() {
 
 	Describe("#CreateServiceInstance", func() {
 		var (
-			controller   *webs.Controller
-			req          *http.Request
-			mockRecorder *httptest.ResponseRecorder
-			instance     sharedModel.ServiceInstance
+			controller     *webs.Controller
+			req            *http.Request
+			mockRecorder   *httptest.ResponseRecorder
+			instance       sharedModel.ServiceInstance
+			probability    = 0.2
+			frequency      = 5
+			planID         = "default"
+			instanceID     = "test"
+			applicationURI = "example.com"
+			dashboardURL   = fmt.Sprintf("https://%s/dashboard/%s", applicationURI, instanceID)
 		)
 
 		JustBeforeEach(func() {
 			mockRecorder = httptest.NewRecorder()
-			probability := 0.2
-			frequency := 5
-			planID := "default"
-			instanceID := "test"
-			applicationURI := "example.com"
-			dashboardURL := fmt.Sprintf("https://%s/dashboard/%s", applicationURI, instanceID)
-
 			instance.DashboardURL = dashboardURL
 			instance.ID = instanceID
 			instance.PlanID = planID
 			instance.Probability = probability
 			instance.Frequency = frequency
-			mock.ExpectExec("INSERT INTO service_instances").WithArgs(instanceID, dashboardURL, planID, probability, frequency).WillReturnResult(sqlmock.NewResult(1, 1))
 			Router(controller).ServeHTTP(mockRecorder, req)
 		})
 
@@ -773,6 +771,7 @@ var _ = Describe("Contoller", func() {
 					Context("and FREQUENCY is set via ENV", func() {
 						BeforeEach(func() {
 							os.Setenv("FREQUENCY", "5")
+							mock.ExpectExec("INSERT INTO service_instances").WithArgs(instanceID, dashboardURL, planID, probability, frequency).WillReturnResult(sqlmock.NewResult(1, 1))
 						})
 
 						AfterEach(func() {
@@ -814,15 +813,30 @@ var _ = Describe("Contoller", func() {
 
 				Context("and it is set via conf", func() {
 					Context("and FREQUENCY is set via conf", func() {
-
 						BeforeEach(func() {
 							conf = &config.Config{DefaultProbability: 0.2, DefaultFrequency: 5}
 							controller = webs.CreateController(db, conf)
 						})
 
-						It("Adds a instance and returns dashboard URL, probability and frequency", func() {
-							Expect(mockRecorder.Code).To(Equal(201))
-							Expect(mockRecorder.Body.String()).To(Equal(`{"dashboard_url":"https://example.com/dashboard/test","probability":0.2,"frequency":5}`))
+						Context("and ther service instance cannot be added to the database", func() {
+							BeforeEach(func() {
+								mock.ExpectExec("INSERT INTO service_instances").WillReturnError(fmt.Errorf("Database write error"))
+							})
+
+							It("returns an error 500", func() {
+								Expect(mockRecorder.Code).To(Equal(500))
+							})
+						})
+
+						Context("and ther service instance can be added to the database", func() {
+							BeforeEach(func() {
+								mock.ExpectExec("INSERT INTO service_instances").WithArgs(instanceID, dashboardURL, planID, probability, frequency).WillReturnResult(sqlmock.NewResult(1, 1))
+							})
+
+							It("Adds a instance and returns dashboard URL, probability and frequency", func() {
+								Expect(mockRecorder.Code).To(Equal(201))
+								Expect(mockRecorder.Body.String()).To(Equal(`{"dashboard_url":"https://example.com/dashboard/test","probability":0.2,"frequency":5}`))
+							})
 						})
 					})
 				})
