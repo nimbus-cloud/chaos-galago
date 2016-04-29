@@ -5,11 +5,11 @@
 
 ### Overview
 
-`chaos-galago` is a project designed to assist in proving applications running on Cloud Foundry are cloud resilient. It is deployed as a service broker and therfore available on the marketplace as a bindable service.
+`chaos-galago` is a project designed to assist in proving applications running on Cloud Foundry are cloud resilient. It is deployed as a service broker and therefore available on the marketplace as a bindable service.
 
-It works by aggressively stopping application instances based on the configured probabability and frequency of the bound service instance.
+It works by aggressively stopping application instances based on the configured probability and frequency of the bound service instance.
 
-### Useage
+### Usage
 
 ```
 cf create-service chaos-galago default {service_instance_name}
@@ -69,23 +69,29 @@ What the script does:
 What the script does **NOT** do:
 * Create a database - chaos galago requires a SQL database, the deploy script will configure the application to connect to a previously existing database.
 
+**If you want to use a managed service to provide your database** like p-mysql, clear db, elephantsql or else that comes from a `cf create-service` you can!
+* Create your service with `cf create-service p-mysql 512mb chaos-galago-db`
+  * Ensure that the name of the service is *chaos-galago-db*
+* Omit the `DB_` variables mentioned in the table below
+* Run `deploy.sh` with the `--managed-db` argument.
+
 Required Variables:
 
 | Variable             | Required | Description                                                                                                                                                                                                                                      |
 |----------------------|----------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | CF_DEPLOY_USERNAME   | Yes      | A Cloud Foundry user with rights to create orgs/ spaces and service-brokers, this user will only be used to deploy chaos-galago                                                                                                                  |
 | CF_DELOY_PASSWORD    | Yes      | The password for CF_DEPLOY_USERNAME                                                                                                                                                                                                              |
-| CF_SYSTEM_DOMAIN     | Yes      | The system domain of Cloud Foundry, the deployment script will need to connect to https://api.CF_SYSTEM_DOMAIN and chaos-galago will need to connect to both https://api.CF_SYSTEM_DOMAIN and https://login.CF_SYSTEM_DOMAIN                     |
-| DB_NAME              | Yes      | The database that chaos-galago will use                                                                                                                                                                                                          |
-| DB_HOST              | Yes      | The IP address or hostname of the database                                                                                                                                                                                                       |
-| DB_PORT              | Yes      | The port used to connect to the database                                                                                                                                                                                                         |
-| DB_USERNAME          | Yes      | A database user with rights to create and update tables                                                                                                                                                                                          |
-| DB_PASSWORD          | Yes      | The password for DB_USERNAME                                                                                                                                                                                                                     |
+| CF_SYSTEM_DOMAIN     | Yes      | The system domain of Cloud Foundry, the deployment script will need to connect to https://api.CF_SYSTEM_DOMAIN and chaos-galago will need to connect to both https://api.CF_SYSTEM_DOMAIN and https://login.CF_SYSTEM_DOMAIN                                                                                                                                                                                                                                       |
 | CF_USERNAME          | Yes      | The Cloud Foundry user that chaos-galago will use to connect to the CF API, it must have at least space developer rights over any application that is bound. An admin level user is recommended to allow seamless interaction across all spaces. |
 | CF_PASSWORD          | Yes      | The password for CF_USERNAME                                                                                                                                                                                                                     |
 | CF_SKIPSSLVALIDATION | Yes      | Must be set to true or false, if you need to use --skip-ssl-validation when you login to the CF CLI then this will need to be set to true to allow chaos-galago to connect to the CF API.                                                        |
+| DB_NAME              | Optional      | The database that chaos-galago will use. Required for `cups` provided database.                                                                                                                                                                                                         |
+| DB_HOST              | Optional      | The IP address or hostname of the database. Required for `cups` provided database.                                                                                                                                                                                                     |
+| DB_PORT              | Optional      | The port used to connect to the database. Required for `cups` provided database.                                                                                                                                                                                                   |
+| DB_USERNAME          | Optional      | A database user with rights to create and update tables. Required for `cups` provided database.                                                                                                                                                                                          |
+| DB_PASSWORD          | Optional      | The password for DB_USERNAME. Required for `cups` provided database.   
 
-Example deploy:
+Example deploy with user provided database:
 
 ```
 CF_SYS_DOMAIN='system_domain.example.com' \
@@ -101,6 +107,20 @@ CF_USERNAME='a_cf_user' \
 CF_PASSWORD='a_cf_user_password' \
 deploy.sh
 ```
+
+Example deploy with managed database
+
+```
+CF_SYS_DOMAIN='system_domain.example.com' \
+CF_DEPLOY_USERNAME='an_admin_user' \
+CF_DEPLOY_PASSWORD='an_admin_user_password' \
+CF_SKIPSSLVALIDATION=true
+CF_USERNAME='a_cf_user' \
+CF_PASSWORD='a_cf_user_password' \
+deploy.sh --managed-db
+```
+
+For development needs `pcfdev-env.sh` has been provided with default values for the above variables.
 
 ### Monitor/Test
 
