@@ -69,7 +69,7 @@ What the script does:
 What the script does **NOT** do:
 * Create a database - chaos galago requires a SQL database, the deploy script will configure the application to connect to a previously existing database.
 
-**If you want to use a managed service to provide your database** like p-mysql, clear db, elephantsql or else that comes from a `cf create-service` you can!
+**If you want to use a managed service to provide your database** like p-mysql, or clear db you can!
 * Create your service with `cf create-service p-mysql 512mb chaos-galago-db`
   * Ensure that the name of the service is *chaos-galago-db*
 * Omit the `DB_` variables mentioned in the table below
