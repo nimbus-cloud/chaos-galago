@@ -238,6 +238,7 @@ var _ = Describe("GetDBConnectionDetails", func() {
 
 	JustBeforeEach(func() {
 		os.Setenv("VCAP_SERVICES", vcapServicesJSON)
+		os.Setenv("VCAP_APPLICATION","{}")
 	})
 
 	AfterEach(func() {
@@ -276,12 +277,14 @@ var _ = Describe("GetDBConnectionDetails", func() {
 		    }
 		   ]
 		 }`
+		 os.Setenv("VCAP_SERVICES", vcapServicesJSON)
+
 		})
 
 		It("returns the database connection string", func() {
 			dbConnString, err := sharedUtils.GetDBConnectionDetails()
 			Expect(err).To(BeNil())
-			Expect(dbConnString).To(Equal("test_user:test_password@tcp(test_host:test_port)/test_database"))
+			Expect(dbConnString).To(Equal("test_user:test_password@tcp(test_host:3306)/test_database"))
 		})
 	})
 

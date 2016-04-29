@@ -2,12 +2,12 @@ package sharedUtils
 
 import (
 	"database/sql"
-	"encoding/json"
 	"fmt"
 	"github.com/FidelityInternational/chaos-galago/shared/model"
+	"github.com/cloudfoundry-community/go-cfenv"
+
 	// sql Driver
 	_ "github.com/go-sql-driver/mysql"
-	"os"
 )
 
 // ReadServiceInstances - Loads service instances to memory from Database
@@ -72,22 +72,31 @@ func ReadServiceBindings(db *sql.DB) (map[string]sharedModel.ServiceBinding, err
 // GetDBConnectionDetails - Loads database connection details from UPS "chaos-galago-db"
 func GetDBConnectionDetails() (string, error) {
 	var (
-		vcapServices sharedModel.VCAPServices
 		dbConnString string
 	)
 
-	vcapServicesEnv := os.Getenv("VCAP_SERVICES")
-	err := json.Unmarshal([]byte(vcapServicesEnv), &vcapServices)
+	appEnv, err := cfenv.Current()
 	if err != nil {
 		return "", err
 	}
 
-	for _, ups := range vcapServices.UserProvided {
-		if ups.Name == "chaos-galago-db" {
-			dbConnString = fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", ups.Credentials.Username, ups.Credentials.Password, ups.Credentials.Host, ups.Credentials.Port, ups.Credentials.Database)
-			break
-		}
+	service, err := appEnv.Services.WithName("chaos-galago-db")
+	if err != nil {
+		return "", err
 	}
+
+	hostname := service.Credentials["host"]
+	if nil == hostname {
+		hostname = service.Credentials["hostname"]
+	}
+	database := service.Credentials["database"]
+	if nil == database {
+		database = service.Credentials["name"]
+	}
+
+	dbConnString = fmt.Sprintf("%s:%s@tcp(%s:%v)/%s",
+		service.Credentials["username"], service.Credentials["password"], hostname,
+		service.Credentials["port"], database)
 
 	return dbConnString, nil
 }
