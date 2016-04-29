@@ -14,17 +14,19 @@ echo "Creating Space chaos-galago..."
 cf create-space chaos-galago
 echo "Targetting Space chaos-galago..."
 cf target -s chaos-galago
-echo "Setting up services..."
-cf service chaos-galago-db > /dev/null 2>&1
-if [ $? -ne 0 ]; then
-  echo "Creating service chaos-galago-db..."
-  cf cups chaos-galago-db -p "{\"database\":\"$DB_NAME\",\"host\":\"$DB_HOST\",\"port\":\"$DB_PORT\",\"username\":\"$DB_USERNAME\",\"password\":\"$DB_PASSWORD\"}"
-else
-  echo "chaos-galago-db already exists..."
-  echo "updating chaos-galago-db..."
-  cf unbind-service chaos-galago-broker chaos-galago-db
-  cf unbind-service chaos-galago-processor chaos-galago-db
-  cf uups chaos-galago-db -p "{\"database\":\"$DB_NAME\",\"host\":\"$DB_HOST\",\"port\":\"$DB_PORT\",\"username\":\"$DB_USERNAME\",\"password\":\"$DB_PASSWORD\"}"
+if [[ $1 != "--managed-db" ]]; then
+  echo "Setting up services..."
+  cf service chaos-galago-db > /dev/null 2>&1
+  if [ $? -ne 0 ]; then
+    echo "Creating service chaos-galago-db..."
+    cf cups chaos-galago-db -p "{\"database\":\"$DB_NAME\",\"host\":\"$DB_HOST\",\"port\":\"$DB_PORT\",\"username\":\"$DB_USERNAME\",\"password\":\"$DB_PASSWORD\"}"
+  else
+    echo "chaos-galago-db already exists..."
+    echo "updating chaos-galago-db..."
+    cf unbind-service chaos-galago-broker chaos-galago-db
+    cf unbind-service chaos-galago-processor chaos-galago-db
+    cf uups chaos-galago-db -p "{\"database\":\"$DB_NAME\",\"host\":\"$DB_HOST\",\"port\":\"$DB_PORT\",\"username\":\"$DB_USERNAME\",\"password\":\"$DB_PASSWORD\"}"
+  fi
 fi
 cf service cf-service > /dev/null 2>&1
 if [ $? -ne 0 ]; then
