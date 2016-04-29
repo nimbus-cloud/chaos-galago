@@ -3,8 +3,8 @@ package main
 import (
 	"database/sql"
 	"fmt"
-	"github.com/FidelityInternational/chaos-galago/processor/Godeps/_workspace/src/chaos-galago/shared/utils"
-	"github.com/FidelityInternational/chaos-galago/processor/Godeps/_workspace/src/github.com/cloudfoundry-community/go-cfclient"
+	"github.com/FidelityInternational/chaos-galago/shared/utils"
+	"github.com/cloudfoundry-community/go-cfclient"
 	"github.com/FidelityInternational/chaos-galago/processor/utils"
 	"os"
 	"strconv"

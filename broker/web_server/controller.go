@@ -3,7 +3,6 @@ package webServer
 import (
 	"database/sql"
 	"fmt"
-	sharedModel "github.com/FidelityInternational/chaos-galago/broker/Godeps/_workspace/src/chaos-galago/shared/model"
 	"github.com/FidelityInternational/chaos-galago/broker/config"
 	model "github.com/FidelityInternational/chaos-galago/broker/model"
 	utils "github.com/FidelityInternational/chaos-galago/broker/utils"
@@ -78,7 +77,7 @@ func GetConfigVariable(c *Controller, varName string, confName string) (string, 
 // CreateServiceInstance - creates a service instance
 func (c *Controller) CreateServiceInstance(w http.ResponseWriter, r *http.Request) {
 	var (
-		instance        sharedModel.ServiceInstance
+		instance        model.ServiceInstance
 		vcapApplication model.VCAPApplication
 	)
 	fmt.Println("Create Service Instance...")
@@ -151,7 +150,7 @@ func (c *Controller) GetServiceInstance(w http.ResponseWriter, r *http.Request) 
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	if instance == (sharedModel.ServiceInstance{}) {
+	if instance == (model.ServiceInstance{}) {
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
@@ -176,7 +175,7 @@ func (c *Controller) RemoveServiceInstance(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	if instance == (sharedModel.ServiceInstance{}) {
+	if instance == (model.ServiceInstance{}) {
 		w.WriteHeader(http.StatusGone)
 		return
 	}
@@ -211,7 +210,7 @@ func (c *Controller) DeleteAssociatedBindings(instanceID string) error {
 
 // Bind - bins a service instance
 func (c *Controller) Bind(w http.ResponseWriter, r *http.Request) {
-	var binding sharedModel.ServiceBinding
+	var binding model.ServiceBinding
 	fmt.Println("Bind Service Instance...")
 
 	bindingID := utils.ExtractVarsFromRequest(r, "service_binding_guid")
@@ -230,7 +229,7 @@ func (c *Controller) Bind(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	if instance == (sharedModel.ServiceInstance{}) {
+	if instance == (model.ServiceInstance{}) {
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
@@ -277,7 +276,7 @@ func (c *Controller) UnBind(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	if instance == (sharedModel.ServiceInstance{}) {
+	if instance == (model.ServiceInstance{}) {
 		w.WriteHeader(http.StatusGone)
 		return
 	}
@@ -303,7 +302,7 @@ func (c *Controller) GetDashboard(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	if instance == (sharedModel.ServiceInstance{}) {
+	if instance == (model.ServiceInstance{}) {
 		w.WriteHeader(http.StatusGone)
 		return
 	}
@@ -353,7 +352,7 @@ func (c *Controller) UpdateServiceInstance(w http.ResponseWriter, r *http.Reques
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	if instance == (sharedModel.ServiceInstance{}) {
+	if instance == (model.ServiceInstance{}) {
 		w.WriteHeader(http.StatusGone)
 		return
 	}
