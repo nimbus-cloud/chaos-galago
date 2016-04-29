@@ -1,0 +1,47 @@
+{
+	"ImportPath": "github.com/FidelityInternational/chaos-galago/processor",
+	"GoVersion": "go1.6",
+	"GodepVersion": "v62",
+	"Deps": [
+		{
+			"ImportPath": "github.com/FidelityInternational/chaos-galago/shared/model",
+			"Comment": "v1.3.0-16-gbdec7ed",
+			"Rev": "bdec7ed2e51d8f9d45aa6d3e4e027de68956353c"
+		},
+		{
+			"ImportPath": "github.com/FidelityInternational/chaos-galago/shared/utils",
+			"Comment": "v1.3.0-16-gbdec7ed",
+			"Rev": "bdec7ed2e51d8f9d45aa6d3e4e027de68956353c"
+		},
+		{
+			"ImportPath": "github.com/cloudfoundry-community/go-cfclient",
+			"Rev": "1e8496da1ea489fb7d8720351c4735150f49b3c5"
+		},
+		{
+			"ImportPath": "github.com/cloudfoundry-community/go-cfenv",
+			"Comment": "v1.12-2-gb4bebec",
+			"Rev": "b4bebec47a425334d2a076cf99329464c9e611f3"
+		},
+		{
+			"ImportPath": "github.com/go-sql-driver/mysql",
+			"Comment": "v1.2-194-g7ebe0a5",
+			"Rev": "7ebe0a500653eeb1859664bed5e48dec1e164e73"
+		},
+		{
+			"ImportPath": "github.com/mitchellh/mapstructure",
+			"Rev": "281073eb9eb092240d33ef253c404f1cca550309"
+		},
+		{
+			"ImportPath": "golang.org/x/net/context",
+			"Rev": "1aafd77e1e7f6849ad16a7bdeb65e3589a10b2bb"
+		},
+		{
+			"ImportPath": "golang.org/x/oauth2",
+			"Rev": "9ef2eddcc6774e42f998940fe1167216d36a7424"
+		},
+		{
+			"ImportPath": "golang.org/x/oauth2/internal",
+			"Rev": "9ef2eddcc6774e42f998940fe1167216d36a7424"
+		}
+	]
+}
