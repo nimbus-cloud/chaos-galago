@@ -17,7 +17,7 @@ cf bind-service {app_name} {service_instance_name}
 ```
 
 A service instance will be created with the default probability (0.2) and frequency (5) set.
-Many applications can be bound to a single service-instance if you desire them to use the same probabilty and frequency.
+Many applications can be bound to a single service-instance if you desire them to use the same probability and frequency.
 
 All frequencies are set in minutes and can be any value between 1 and 60.
 All probabilities are set as a float and must be between 0 and 1.
@@ -53,7 +53,7 @@ Clone this project.
 go get -t -u -f github.com/FidelityInternational/chaos-galago/...
 ```
 
-A deploy scipt is included in order to make deploying chaos-galago as simple as possible.
+A deploy script is included in order to make deploying chaos-galago as simple as possible.
 
 What the script does:
 * Creates an Org and Space to deploy chaos-galago too

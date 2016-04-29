@@ -71,10 +71,6 @@ func ReadServiceBindings(db *sql.DB) (map[string]sharedModel.ServiceBinding, err
 
 // GetDBConnectionDetails - Loads database connection details from UPS "chaos-galago-db"
 func GetDBConnectionDetails() (string, error) {
-	var (
-		dbConnString string
-	)
-
 	appEnv, err := cfenv.Current()
 	if err != nil {
 		return "", err
@@ -89,12 +85,13 @@ func GetDBConnectionDetails() (string, error) {
 	if nil == hostname {
 		hostname = service.Credentials["hostname"]
 	}
+	
 	database := service.Credentials["database"]
 	if nil == database {
 		database = service.Credentials["name"]
 	}
 
-	dbConnString = fmt.Sprintf("%s:%s@tcp(%s:%v)/%s",
+	dbConnString := fmt.Sprintf("%s:%s@tcp(%s:%v)/%s",
 		service.Credentials["username"], service.Credentials["password"], hostname,
 		service.Credentials["port"], database)
 
