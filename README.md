@@ -55,6 +55,9 @@ go get -t -u -f github.com/FidelityInternational/chaos-galago/...
 
 A deploy script is included in order to make deploying chaos-galago as simple as possible.
 
+Requirements:
+* Go [buildpack](https://github.com/cloudfoundry/go-buildpack/releases) 1.73 or later
+
 What the script does:
 * Creates an Org and Space to deploy chaos-galago too
 * Sets up required user-provided-services - these are configuration only!
