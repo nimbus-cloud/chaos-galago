@@ -111,7 +111,6 @@ func LoadCFConfig() *cfclient.Config {
 		if cfService.Name == "cf-service" {
 			return &cfclient.Config{
 				ApiAddress:        fmt.Sprintf("https://api.%s", cfService.Credentials.Domain),
-				LoginAddress:      fmt.Sprintf("https://login.%s", cfService.Credentials.Domain),
 				Username:          cfService.Credentials.Username,
 				Password:          cfService.Credentials.Password,
 				SkipSslValidation: cfService.Credentials.SkipSslValidation,

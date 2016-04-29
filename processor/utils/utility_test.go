@@ -294,7 +294,6 @@ var _ = Describe("LoadCFConfig", func() {
 			It("Returns *cfclient.Config", func() {
 				config := utils.LoadCFConfig()
 				Expect(config).To(Equal(&cfclient.Config{ApiAddress: "https://api.example.com",
-					LoginAddress:      "https://login.example.com",
 					Username:          "test_user",
 					Password:          "test_password",
 					SkipSslValidation: true}))

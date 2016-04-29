@@ -26,7 +26,6 @@ func init() {
 	config = utils.LoadCFConfig()
 	fmt.Println("Config loaded:")
 	fmt.Println("ApiAddress: ", config.ApiAddress)
-	fmt.Println("LoginAddress: ", config.LoginAddress)
 	fmt.Println("Username: ", config.Username)
 	fmt.Println("SkipSslValidation: ", config.SkipSslValidation)
 }
@@ -41,7 +40,12 @@ func logError(err error) bool {
 }
 
 func main() {
-	cfClient := cfclient.NewClient(config)
+	cfClient, err := cfclient.NewClient(config)
+	if err != nil {
+		logError(err)
+		os.Exit(1)
+	}
+
 	ticker := time.NewTicker(1 * time.Minute)
 
 	processServices(cfClient)
@@ -68,7 +72,13 @@ func processServices(cfClient *cfclient.Client) {
 			}
 			if utils.ShouldRun(service.Probability) {
 				fmt.Printf("Running chaos for %s\n", service.AppID)
-				appInstances := cfClient.GetAppInstances(service.AppID)
+
+				appInstances, err := cfClient.GetAppInstances(service.AppID)
+				if err != nil {
+					logError(err)
+					continue
+				}
+
 				if utils.IsAppHealthy(appInstances) {
 					fmt.Printf("App %s is Healthy\n", service.AppID)
 					chaosInstance := strconv.Itoa(utils.PickAppInstance(appInstances))
