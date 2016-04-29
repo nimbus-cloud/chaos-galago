@@ -99,10 +99,12 @@ var _ = Describe("Server", func() {
 
 		JustBeforeEach(func() {
 			os.Setenv("VCAP_SERVICES", vcapServicesJSON)
+			os.Setenv("VCAP_APPLICATION", "{}")
 		})
 
 		AfterEach(func() {
 			os.Unsetenv("VCAP_SERVICES")
+			os.Unsetenv("VCAP_APPLICATION")
 		})
 
 		Context("When chaos-galago-db service is set", func() {

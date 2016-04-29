@@ -3,7 +3,8 @@ package webServer
 import (
 	"database/sql"
 	"fmt"
-	"github.com/FidelityInternational/chaos-galago/shared/utils"
+	sharedUtils "github.com/FidelityInternational/chaos-galago/shared/utils"
+	"github.com/FidelityInternational/chaos-galago/broker/utils"
 	"github.com/gorilla/mux"
 	"github.com/FidelityInternational/chaos-galago/broker/config"
 	"net/http"

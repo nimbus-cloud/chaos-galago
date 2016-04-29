@@ -3,7 +3,7 @@ package utils_test
 import (
 	"bytes"
 	"fmt"
-	"chaos-galago/shared/model"
+	sharedModel "github.com/FidelityInternational/chaos-galago/shared/model"
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/gorilla/mux"
 	. "github.com/onsi/ginkgo"
