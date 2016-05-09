@@ -3,10 +3,10 @@ package webServer
 import (
 	"database/sql"
 	"fmt"
-	sharedModel "github.com/FidelityInternational/chaos-galago/broker/Godeps/_workspace/src/chaos-galago/shared/model"
 	"github.com/FidelityInternational/chaos-galago/broker/config"
 	model "github.com/FidelityInternational/chaos-galago/broker/model"
 	utils "github.com/FidelityInternational/chaos-galago/broker/utils"
+	sharedModel "github.com/FidelityInternational/chaos-galago/shared/model"
 	"net/http"
 	"os"
 	"reflect"

@@ -2,10 +2,10 @@ package utils_test
 
 import (
 	"fmt"
-	"github.com/FidelityInternational/chaos-galago/processor/Godeps/_workspace/src/github.com/DATA-DOG/go-sqlmock"
-	"github.com/FidelityInternational/chaos-galago/processor/Godeps/_workspace/src/github.com/cloudfoundry-community/go-cfclient"
-	. "github.com/FidelityInternational/chaos-galago/processor/Godeps/_workspace/src/github.com/onsi/ginkgo"
-	. "github.com/FidelityInternational/chaos-galago/processor/Godeps/_workspace/src/github.com/onsi/gomega"
+	"github.com/DATA-DOG/go-sqlmock"
+	"github.com/cloudfoundry-community/go-cfclient"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 	"github.com/FidelityInternational/chaos-galago/processor/model"
 	"github.com/FidelityInternational/chaos-galago/processor/utils"
 	"math/rand"
@@ -294,7 +294,6 @@ var _ = Describe("LoadCFConfig", func() {
 			It("Returns *cfclient.Config", func() {
 				config := utils.LoadCFConfig()
 				Expect(config).To(Equal(&cfclient.Config{ApiAddress: "https://api.example.com",
-					LoginAddress:      "https://login.example.com",
 					Username:          "test_user",
 					Password:          "test_password",
 					SkipSslValidation: true}))

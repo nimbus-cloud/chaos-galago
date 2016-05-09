@@ -3,13 +3,13 @@ package webServer
 import (
 	"database/sql"
 	"fmt"
-	"github.com/FidelityInternational/chaos-galago/broker/Godeps/_workspace/src/chaos-galago/shared/utils"
-	"github.com/FidelityInternational/chaos-galago/broker/Godeps/_workspace/src/github.com/gorilla/mux"
-	"github.com/FidelityInternational/chaos-galago/broker/config"
+	sharedUtils "github.com/FidelityInternational/chaos-galago/shared/utils"
 	"github.com/FidelityInternational/chaos-galago/broker/utils"
+	"github.com/gorilla/mux"
+	"github.com/FidelityInternational/chaos-galago/broker/config"
 	"net/http"
 	// sql driver
-	_ "github.com/FidelityInternational/chaos-galago/broker/Godeps/_workspace/src/github.com/go-sql-driver/mysql"
+	_ "github.com/go-sql-driver/mysql"
 )
 
 var (

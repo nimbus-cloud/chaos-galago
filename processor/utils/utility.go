@@ -4,9 +4,9 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"github.com/FidelityInternational/chaos-galago/processor/Godeps/_workspace/src/chaos-galago/shared/model"
-	"github.com/FidelityInternational/chaos-galago/processor/Godeps/_workspace/src/chaos-galago/shared/utils"
-	"github.com/FidelityInternational/chaos-galago/processor/Godeps/_workspace/src/github.com/cloudfoundry-community/go-cfclient"
+	"github.com/FidelityInternational/chaos-galago/shared/model"
+	"github.com/FidelityInternational/chaos-galago/shared/utils"
+	"github.com/cloudfoundry-community/go-cfclient"
 	"github.com/FidelityInternational/chaos-galago/processor/model"
 	"math/rand"
 	"os"
@@ -111,7 +111,6 @@ func LoadCFConfig() *cfclient.Config {
 		if cfService.Name == "cf-service" {
 			return &cfclient.Config{
 				ApiAddress:        fmt.Sprintf("https://api.%s", cfService.Credentials.Domain),
-				LoginAddress:      fmt.Sprintf("https://login.%s", cfService.Credentials.Domain),
 				Username:          cfService.Credentials.Username,
 				Password:          cfService.Credentials.Password,
 				SkipSslValidation: cfService.Credentials.SkipSslValidation,

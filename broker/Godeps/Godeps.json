@@ -1,45 +1,41 @@
 {
 	"ImportPath": "github.com/FidelityInternational/chaos-galago/broker",
-	"GoVersion": "go1.5",
-	"Packages": [
-		"./..."
-	],
+	"GoVersion": "go1.6",
+	"GodepVersion": "v62",
 	"Deps": [
 		{
 			"ImportPath": "github.com/FidelityInternational/chaos-galago/shared/model",
-			"Rev": "9cfd5bfa84cf4ff935824771fa84896e7b549722"
+			"Comment": "v1.3.0-16-gbdec7ed",
+			"Rev": "bdec7ed2e51d8f9d45aa6d3e4e027de68956353c"
 		},
 		{
 			"ImportPath": "github.com/FidelityInternational/chaos-galago/shared/utils",
-			"Rev": "9cfd5bfa84cf4ff935824771fa84896e7b549722"
+			"Comment": "v1.3.0-16-gbdec7ed",
+			"Rev": "bdec7ed2e51d8f9d45aa6d3e4e027de68956353c"
 		},
 		{
-			"ImportPath": "github.com/DATA-DOG/go-sqlmock",
-			"Comment": "v1.0.0-5-gf49a90b",
-			"Rev": "f49a90b6f7f3763b76ca1618f1bbd6189239be7a"
+			"ImportPath": "github.com/cloudfoundry-community/go-cfenv",
+			"Comment": "v1.12-2-gb4bebec",
+			"Rev": "b4bebec47a425334d2a076cf99329464c9e611f3"
 		},
 		{
 			"ImportPath": "github.com/go-sql-driver/mysql",
-			"Comment": "v1.2-167-gb4db83c",
-			"Rev": "b4db83c6faa0dc87d33f0bd7cdc81c7078594278"
+			"Comment": "v1.2-194-g7ebe0a5",
+			"Rev": "7ebe0a500653eeb1859664bed5e48dec1e164e73"
 		},
 		{
 			"ImportPath": "github.com/gorilla/context",
-			"Rev": "1c83b3eabd45b6d76072b66b746c20815fb2872d"
+			"Comment": "v1.1-2-ga8d44e7",
+			"Rev": "a8d44e7d8e4d532b6a27a02dd82abb31cc1b01bd"
 		},
 		{
 			"ImportPath": "github.com/gorilla/mux",
-			"Rev": "9c068cf16d982f8bd444b8c352acbeec34c4fe5b"
+			"Comment": "v1.1",
+			"Rev": "0eeaf8392f5b04950925b8a69fe70f110fa7cbfc"
 		},
 		{
-			"ImportPath": "github.com/onsi/ginkgo",
-			"Comment": "v1.2.0-29-g7f8ab55",
-			"Rev": "7f8ab55aaf3b86885aa55b762e803744d1674700"
-		},
-		{
-			"ImportPath": "github.com/onsi/gomega",
-			"Comment": "v1.0-71-g2152b45",
-			"Rev": "2152b45fa28a361beba9aab0885972323a444e28"
+			"ImportPath": "github.com/mitchellh/mapstructure",
+			"Rev": "281073eb9eb092240d33ef253c404f1cca550309"
 		}
 	]
 }

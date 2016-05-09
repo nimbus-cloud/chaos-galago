@@ -238,6 +238,7 @@ var _ = Describe("GetDBConnectionDetails", func() {
 
 	JustBeforeEach(func() {
 		os.Setenv("VCAP_SERVICES", vcapServicesJSON)
+		os.Setenv("VCAP_APPLICATION","{}")
 	})
 
 	AfterEach(func() {
@@ -248,6 +249,43 @@ var _ = Describe("GetDBConnectionDetails", func() {
 		dbConnString, err := sharedUtils.GetDBConnectionDetails()
 		Expect(err).To(BeNil())
 		Expect(dbConnString).To(Equal("test_user:test_password@tcp(test_host:test_port)/test_database"))
+	})
+
+	Context("When unmarshaling a managed database connection", func() {
+		BeforeEach(func() {
+			vcapServicesJSON = `
+		 {
+		   "p-mysql": [
+		    {
+		     "credentials": {
+		      "hostname": "test_host",
+		      "jdbcUrl": "jdbc:mysql:/test_host:3306/test_database?user=test_user\u0026password=test_password",
+		      "name": "test_database",
+		      "password": "test_password",
+		      "port": 3306,
+		      "uri": "mysql://test_user:test_password@test_host:3306/test_database?reconnect=true",
+		      "username": "test_user"
+		     },
+		     "label": "p-mysql",
+		     "name": "chaos-galago-db",
+		     "plan": "512mb",
+		     "provider": null,
+		     "syslog_drain_url": null,
+		     "tags": [
+		      "mysql"
+		     ]
+		    }
+		   ]
+		 }`
+		 os.Setenv("VCAP_SERVICES", vcapServicesJSON)
+
+		})
+
+		It("returns the database connection string", func() {
+			dbConnString, err := sharedUtils.GetDBConnectionDetails()
+			Expect(err).To(BeNil())
+			Expect(dbConnString).To(Equal("test_user:test_password@tcp(test_host:3306)/test_database"))
+		})
 	})
 
 	Context("When unmarshalling raises an error", func() {

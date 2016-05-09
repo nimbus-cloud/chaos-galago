@@ -13,6 +13,7 @@ applications:
   instances: 2
   path: processor
   no-route: true
+  health-check-type: none
   services:
   - chaos-galago-db
   - cf-service
