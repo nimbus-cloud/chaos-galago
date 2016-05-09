@@ -56,6 +56,7 @@ go get -t -u -f github.com/FidelityInternational/chaos-galago/...
 A deploy script is included in order to make deploying chaos-galago as simple as possible.
 
 Requirements:
+* Go 1.6
 * Go [buildpack](https://github.com/cloudfoundry/go-buildpack/releases) 1.73 or later
 
 What the script does:
@@ -89,7 +90,7 @@ Required Variables:
 | DB_HOST              | Optional      | The IP address or hostname of the database. Required for `cups` provided database.                                                                                                                                                                                                     |
 | DB_PORT              | Optional      | The port used to connect to the database. Required for `cups` provided database.                                                                                                                                                                                                   |
 | DB_USERNAME          | Optional      | A database user with rights to create and update tables. Required for `cups` provided database.                                                                                                                                                                                          |
-| DB_PASSWORD          | Optional      | The password for DB_USERNAME. Required for `cups` provided database.   
+| DB_PASSWORD          | Optional      | The password for DB_USERNAME. Required for `cups` provided database.
 
 Example deploy with user provided database:
 
