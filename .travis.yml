@@ -10,8 +10,12 @@ go_import_path: github.com/FidelityInternational/chaos-galago
 before_install:
   - go get github.com/pierrre/gotestcover
   - go get golang.org/x/tools/cover
+  - go get github.com/tools/godep
 
 script:
+  - cd broker
+  - godep restore
+  - cd ..
   - gotestcover -coverprofile=coverage.txt -race -covermode=atomic -v ./...
 
 after_success:
