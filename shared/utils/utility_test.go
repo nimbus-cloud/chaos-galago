@@ -214,46 +214,83 @@ var _ = Describe("#ReadServiceBindings", func() {
 })
 
 var _ = Describe("GetDBConnectionDetails", func() {
-	var vcapServicesJSON string
-
-	BeforeEach(func() {
-		vcapServicesJSON = `{
-  "user-provided": [
-   {
-    "credentials": {
-    	"username":"test_user",
-    	"password":"test_password",
-    	"host":"test_host",
-    	"port":"test_port",
-    	"database":"test_database"
-    },
-    "label": "user-provided",
-    "name": "chaos-galago-db",
-    "syslog_drain_url": "",
-    "tags": []
-   }
-  ]
- }`
-	})
-
-	JustBeforeEach(func() {
-		os.Setenv("VCAP_SERVICES", vcapServicesJSON)
-		os.Setenv("VCAP_APPLICATION","{}")
-	})
-
-	AfterEach(func() {
-		os.Unsetenv("VCAP_SERVICES")
-	})
-
-	It("Returns the database connection string", func() {
-		dbConnString, err := sharedUtils.GetDBConnectionDetails()
-		Expect(err).To(BeNil())
-		Expect(dbConnString).To(Equal("test_user:test_password@tcp(test_host:test_port)/test_database"))
-	})
-
-	Context("When unmarshaling a managed database connection", func() {
+	Context("when a chaos-galago-db service does not exist", func() {
+		var vcapServicesJSON string
 		BeforeEach(func() {
-			vcapServicesJSON = `
+			vcapServicesJSON = `{
+"user-provided": [
+ {
+  "credentials": {
+    "username":"test_user",
+    "password":"test_password",
+    "host":"test_host",
+    "port":"test_port",
+    "database":"test_database"
+  },
+  "label": "user-provided",
+  "name": "other-service",
+  "syslog_drain_url": "",
+  "tags": []
+ }
+]
+}`
+		})
+
+		JustBeforeEach(func() {
+			os.Setenv("VCAP_SERVICES", vcapServicesJSON)
+			os.Setenv("VCAP_APPLICATION", "{}")
+		})
+
+		AfterEach(func() {
+			os.Unsetenv("VCAP_SERVICES")
+		})
+		It("returns an error", func() {
+			_, err := sharedUtils.GetDBConnectionDetails()
+			Expect(err).To(MatchError("no service with name chaos-galago-db"))
+		})
+	})
+
+	Context("when a chaos-galago-db service exists", func() {
+		var vcapServicesJSON string
+
+		BeforeEach(func() {
+			vcapServicesJSON = `{
+"user-provided": [
+ {
+  "credentials": {
+    "username":"test_user",
+    "password":"test_password",
+    "host":"test_host",
+    "port":"test_port",
+    "database":"test_database"
+  },
+  "label": "user-provided",
+  "name": "chaos-galago-db",
+  "syslog_drain_url": "",
+  "tags": []
+ }
+]
+}`
+		})
+
+		JustBeforeEach(func() {
+			os.Setenv("VCAP_SERVICES", vcapServicesJSON)
+			os.Setenv("VCAP_APPLICATION", "{}")
+		})
+
+		AfterEach(func() {
+			os.Unsetenv("VCAP_SERVICES")
+		})
+
+		It("Returns the database connection string", func() {
+			dbConnString, err := sharedUtils.GetDBConnectionDetails()
+			Expect(err).To(BeNil())
+			Expect(dbConnString).To(Equal("test_user:test_password@tcp(test_host:test_port)/test_database"))
+		})
+
+		Context("When unmarshaling a managed database connection", func() {
+			BeforeEach(func() {
+				vcapServicesJSON = `
 		 {
 		   "p-mysql": [
 		    {
@@ -277,20 +314,20 @@ var _ = Describe("GetDBConnectionDetails", func() {
 		    }
 		   ]
 		 }`
-		 os.Setenv("VCAP_SERVICES", vcapServicesJSON)
+				os.Setenv("VCAP_SERVICES", vcapServicesJSON)
 
+			})
+
+			It("returns the database connection string", func() {
+				dbConnString, err := sharedUtils.GetDBConnectionDetails()
+				Expect(err).To(BeNil())
+				Expect(dbConnString).To(Equal("test_user:test_password@tcp(test_host:3306)/test_database"))
+			})
 		})
 
-		It("returns the database connection string", func() {
-			dbConnString, err := sharedUtils.GetDBConnectionDetails()
-			Expect(err).To(BeNil())
-			Expect(dbConnString).To(Equal("test_user:test_password@tcp(test_host:3306)/test_database"))
-		})
-	})
-
-	Context("When unmarshalling raises an error", func() {
-		BeforeEach(func() {
-			vcapServicesJSON = `{
+		Context("When unmarshalling raises an error", func() {
+			BeforeEach(func() {
+				vcapServicesJSON = `{
   "user-provided": [
    {
     "credenti
@@ -306,12 +343,13 @@ var _ = Describe("GetDBConnectionDetails", func() {
    }
   ]
  }`
-			os.Setenv("VCAP_SERVICES", vcapServicesJSON)
-		})
-		It("Returns an error", func() {
-			_, err := sharedUtils.GetDBConnectionDetails()
-			Expect(err).ToNot(BeNil())
-			Expect(err.Error()).To(MatchRegexp("invalid character"))
+				os.Setenv("VCAP_SERVICES", vcapServicesJSON)
+			})
+			It("Returns an error", func() {
+				_, err := sharedUtils.GetDBConnectionDetails()
+				Expect(err).ToNot(BeNil())
+				Expect(err.Error()).To(MatchRegexp("invalid character"))
+			})
 		})
 	})
 })
