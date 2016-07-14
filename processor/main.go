@@ -3,9 +3,9 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"github.com/FidelityInternational/chaos-galago/processor/utils"
 	"github.com/FidelityInternational/chaos-galago/shared/utils"
 	"github.com/cloudfoundry-community/go-cfclient"
-	"github.com/FidelityInternational/chaos-galago/processor/utils"
 	"os"
 	"strconv"
 	"time"

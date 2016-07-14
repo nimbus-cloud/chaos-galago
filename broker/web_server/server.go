@@ -3,10 +3,10 @@ package webServer
 import (
 	"database/sql"
 	"fmt"
-	sharedUtils "github.com/FidelityInternational/chaos-galago/shared/utils"
-	"github.com/FidelityInternational/chaos-galago/broker/utils"
-	"github.com/gorilla/mux"
 	"github.com/FidelityInternational/chaos-galago/broker/config"
+	"github.com/FidelityInternational/chaos-galago/broker/utils"
+	sharedUtils "github.com/FidelityInternational/chaos-galago/shared/utils"
+	"github.com/gorilla/mux"
 	"net/http"
 	// sql driver
 	_ "github.com/go-sql-driver/mysql"

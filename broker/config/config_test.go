@@ -2,9 +2,9 @@ package config_test
 
 import (
 	"fmt"
+	. "github.com/FidelityInternational/chaos-galago/broker/config"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	. "github.com/FidelityInternational/chaos-galago/broker/config"
 )
 
 var _ = Describe("#LoadConfig_#GetConfig", func() {

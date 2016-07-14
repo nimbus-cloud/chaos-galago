@@ -3,11 +3,11 @@ package utils_test
 import (
 	"fmt"
 	"github.com/DATA-DOG/go-sqlmock"
+	"github.com/FidelityInternational/chaos-galago/processor/model"
+	"github.com/FidelityInternational/chaos-galago/processor/utils"
 	"github.com/cloudfoundry-community/go-cfclient"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/FidelityInternational/chaos-galago/processor/model"
-	"github.com/FidelityInternational/chaos-galago/processor/utils"
 	"math/rand"
 	"os"
 	"time"
