@@ -125,4 +125,4 @@ For development needs `pcfdev-env.sh` has been provided with default values for 
 
 ### Monitor/Test
 
-To monitor and test that chaos-galago is functioning as expected you can use the `chaos-galago-smoke-tests` project from `https://github.com/FidelityInternational/chaos-galago-smoke-tests`.
+To monitor and test that chaos-galago is running and functioning as expected you can use the `chaos-galago-smoke-tests` project from `https://github.com/FidelityInternational/chaos-galago-smoke-tests`.
