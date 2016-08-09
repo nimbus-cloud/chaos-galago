@@ -14,7 +14,7 @@ echo "Creating Space chaos-galago..."
 cf create-space chaos-galago
 echo "Targetting Space chaos-galago..."
 cf target -s chaos-galago
-if [[ $1 != "--managed-db" ]]; then
+if [[ $# -gt 0 && $1 != "--managed-db" ]]; then
   echo "Setting up services..."
   cf service chaos-galago-db > /dev/null 2>&1
   if [ $? -ne 0 ]; then
