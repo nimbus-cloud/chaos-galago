@@ -1,11 +1,11 @@
 #! /bin/bash
 
-set +x
+set -e
 set -u
 
 echo "Logging into CF..."
-cf api https://api.$CF_SYS_DOMAIN --skip-ssl-validation
-cf auth $CF_DEPLOY_USERNAME $CF_DEPLOY_PASSWORD
+cf api "https://api.$CF_SYS_DOMAIN" --skip-ssl-validation
+cf auth "$CF_DEPLOY_USERNAME" "$CF_DEPLOY_PASSWORD"
 echo "Creating Org chaos-galago..."
 cf create-org chaos-galago
 echo "Targetting Org chaos-galago..."
@@ -16,8 +16,7 @@ echo "Targetting Space chaos-galago..."
 cf target -s chaos-galago
 if [[ $# -gt 0 && $1 != "--managed-db" ]]; then
   echo "Setting up services..."
-  cf service chaos-galago-db > /dev/null 2>&1
-  if [ $? -ne 0 ]; then
+  if [[ "$(cf service chaos-galago-db || true)" == *"FAILED"* ]] ; then
     echo "Creating service chaos-galago-db..."
     cf cups chaos-galago-db -p "{\"database\":\"$DB_NAME\",\"host\":\"$DB_HOST\",\"port\":\"$DB_PORT\",\"username\":\"$DB_USERNAME\",\"password\":\"$DB_PASSWORD\"}"
   else
@@ -28,8 +27,7 @@ if [[ $# -gt 0 && $1 != "--managed-db" ]]; then
     cf uups chaos-galago-db -p "{\"database\":\"$DB_NAME\",\"host\":\"$DB_HOST\",\"port\":\"$DB_PORT\",\"username\":\"$DB_USERNAME\",\"password\":\"$DB_PASSWORD\"}"
   fi
 fi
-cf service cf-service > /dev/null 2>&1
-if [ $? -ne 0 ]; then
+if [[ "$(cf service cf-service || true)" == *"FAILED"* ]] ; then
   echo "Creating service cf-service..."
   cf cups cf-service -p "{\"domain\":\"$CF_SYS_DOMAIN\",\"skipsslvalidation\":$CF_SKIPSSLVALIDATION,\"username\":\"$CF_USERNAME\",\"password\":\"$CF_PASSWORD\"}"
 else
@@ -40,23 +38,21 @@ else
 fi
 echo "Deploying apps..."
 deployed_domain=$(cf app chaos-galago-broker | grep urls | cut -d":" -f2 | xargs)
-cf app chaos-galago-broker > /dev/null 2>&1
-if [ $? -eq 0 ]; then
+if [[ "$(cf app chaos-galago-broker || true)" == *"FAILED"* ]] ; then
   echo "Zero downtime deploying chaos-galago-broker..."
   domain=$(cf app chaos-galago-broker | grep urls | cut -d":" -f2 | xargs | cut -d"." -f 2-)
   cf push -f manifest-green.yml
-  cf map-route chaos-galago-broker-green $domain -n chaos-galago-broker
+  cf map-route chaos-galago-broker-green "$domain" -n chaos-galago-broker
   cf delete chaos-galago-broker -f
   cf rename chaos-galago-broker-green chaos-galago-broker
-  cf unmap-route chaos-galago-broker $domain -n chaos-galago-broker-green
+  cf unmap-route chaos-galago-broker "$domain" -n chaos-galago-broker-green
   cf push chaos-galago-processor
 else
   cf push
 fi
 echo "Adding as CF Service Broker..."
-cf create-service-broker chaos-galago admin not_secured https://$deployed_domain
-if [ $? -ne 0 ]; then
-  cf update-service-broker chaos-galago admin not_secured https://$deployed_domain
+if [[ "$(cf create-service-broker chaos-galago admin not_secured "https://$deployed_domain" || true)" == *"FAILED"* ]] ; then
+  cf update-service-broker chaos-galago admin not_secured "https://$deployed_domain"
 fi
 echo "Adding CF Service Access..."
 cf enable-service-access chaos-galago
