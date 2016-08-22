@@ -5,6 +5,7 @@ applications:
   disk_quota: 50M
   instances: 2
   path: broker
+  buildpack: https://github.com/cloudfoundry/go-buildpack.git#v1.7.3
   services:
   - chaos-galago-db
 - name: chaos-galago-processor
@@ -14,6 +15,7 @@ applications:
   path: processor
   no-route: true
   health-check-type: none
+  buildpack: https://github.com/cloudfoundry/go-buildpack.git#v1.7.3
   services:
   - chaos-galago-db
   - cf-service
