@@ -6,14 +6,14 @@ set -u
 echo "Logging into CF..."
 cf api "https://api.$CF_SYS_DOMAIN" --skip-ssl-validation
 cf auth "$CF_DEPLOY_USERNAME" "$CF_DEPLOY_PASSWORD"
-echo "Creating Org chaos-galago..."
-cf create-org chaos-galago
-echo "Targetting Org chaos-galago..."
-cf target -o chaos-galago
-echo "Creating Space chaos-galago..."
-cf create-space chaos-galago
-echo "Targetting Space chaos-galago..."
-cf target -s chaos-galago
+#echo "Creating Org chaos-galago..."
+#cf create-org chaos-galago
+#echo "Targetting Org chaos-galago..."
+#cf target -o chaos-galago
+#echo "Creating Space chaos-galago..."
+#cf create-space chaos-galago
+#echo "Targetting Space chaos-galago..."
+cf target -s service-brokers
 if [[ $# -gt 0 && $1 != "--managed-db" ]]; then
   echo "Setting up services..."
   if [[ "$(cf service chaos-galago-db || true)" == *"FAILED"* ]] ; then
