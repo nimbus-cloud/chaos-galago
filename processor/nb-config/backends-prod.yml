@@ -1,0 +1,12 @@
+---
+backends:
+
+    - name: other apps running in nimbus 2
+      description: other apps running in nimbus 2
+      justification: other apps running in nimbus 2
+      port: 443
+      destination:
+          - dns: cfvip1.paas.glb.sky.com
+            ip: 10.92.60.77
+          - dns: cfvip1.paas.glb.sky.com
+            ip: 10.76.60.77
